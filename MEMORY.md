@@ -19,3 +19,15 @@ Build artifacts to clean before commit: stray `ports.exe`, `out.txt`, `err.txt` 
 
 ## CI/release workflow: intentionally omitted; add a GitHub Actions workflow only w
 CI/release workflow: intentionally omitted; add a GitHub Actions workflow only when auto-published tagged installers are wanted.
+
+## close-to-tray: implemented in `tray.go` (`OnClose` → `PreventDefault` + `Hide`);
+close-to-tray: implemented in `tray.go` (`OnClose` → `PreventDefault` + `Hide`); tray menu has Show/Quit
+
+## no-terminal build: MyGo builds with `-H=windowsgui` so PE Subsystem = 2 (GUI); n
+no-terminal build: MyGo builds with `-H=windowsgui` so PE Subsystem = 2 (GUI); no console window opens
+
+## install layout: per-user install at `%LOCALAPPDATA%\Programs\ports\ports.exe` wi
+install layout: per-user install at `%LOCALAPPDATA%\Programs\ports\ports.exe` with Start Menu `ports.lnk` and registered uninstaller (no admin prompt); window title is "Ports"
+
+## app identity: Go desktop app built with github.com/egoist/mygo (see mygo-mainten
+app identity: Go desktop app built with github.com/egoist/mygo (see mygo-maintenance skill)
