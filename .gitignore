@@ -1,3 +1,9 @@
+# Build output
 /build/
 /.mygo/
 mygo_windows_*.syso
+
+# A stray build of the app, if one is left in the root
+/ports.exe
+/out.txt
+/err.txt

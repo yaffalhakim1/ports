@@ -13,7 +13,6 @@ import "github.com/egoist/mygo/ui"
 var (
 	// Dark: graphite canvas, ink text.
 	darkCanvas   = ui.Hex("#1A1A1A")
-	darkSidebar  = ui.Hex("#181818")
 	darkRaised   = ui.Hex("#232323")
 	darkComposer = ui.Hex("#212121")
 	darkInset    = ui.Hex("#151515")
@@ -28,7 +27,6 @@ var (
 
 	// Light: paper canvas, ink text.
 	lightCanvas   = ui.Hex("#F6F5F6")
-	lightSidebar  = ui.Hex("#F3F3F3")
 	lightRaised   = ui.Hex("#ECECEC")
 	lightComposer = ui.Hex("#FFFFFF")
 	lightInset    = ui.Hex("#E6E6E6")
