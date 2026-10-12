@@ -202,3 +202,16 @@ Pulse reference: egoist/pulse is a cross-platform energy/network monitor built o
 
 ## Reference workflow: User's convention when learning from a peer app is to clone 
 Reference workflow: User's convention when learning from a peer app is to clone it and steal structure (not pixels), then port one idea back into their own project (e.g. per-process icons or tray readout into ports).
+
+## ports repo layout: restructured into internal/port (pure model), internal/host
+ports repo layout: restructured into internal/port (pure model), internal/host (system reads + process control, all //go:build windows), internal/app (state, views, theme, tray, settings); main.go stays at root so mygo.json resolves. Deps flow main -> app -> host -> port.
+
+## ports release flow: `git tag vX.Y.Z && git push origin vX.Y.Z` triggers
+ports release flow: `git tag vX.Y.Z && git push origin vX.Y.Z` triggers .github/workflows/release.yml, which tests, builds both Windows arches, checks the tag against mygo.json's version, and publishes a GitHub release with installers + signed update files.
+
+## ports updater: app uses the native updater plugin (github.com/egoist/mygo/plugins/updater/native) with updates.publicKey + updates.github in mygo.json; tray has a "Check for Updates" item. Private key lives at %APPDATA%\mygo\update-keys\mygo-update.key and as the MYGO_UPDATER_PRIVATE_KEY repo secret — losing it strands installed apps.
+
+## mygo release gotcha: both Windows architectures build an installer with the same
+mygo release gotcha: both Windows architectures build an installer with the same basename ("ports Setup X.Y.Z.exe"), and a GitHub release cannot hold two same-named assets — so build signed WITHOUT -upload and upload per-arch-renamed installers; the .tar.gz and update-*.json names must stay as built because the manifests reference them.
+
+## ports landing page: Hallmark-built static page in landing/ (index.html, tokens.css, assets/, favicon.png), published by .github/workflows/pages.yml to https://yaffalhakim1.github.io/ports/ on changes under landing/. Apple-design pass applied (translucent sticky nav, press feedback, reduced-motion/transparency fallbacks).
