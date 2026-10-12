@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Ports concept A — Socket (v2)</title>
+  <!-- A socket opening: a bold ring with a gap, and the listener dot in it. -->
+  <g id="symbol" fill="#0A0A0A">
+    <path fill-rule="evenodd" d="
+      M209.1 106.3 A84 84 0 1 1 149.8 46.8 L139.4 85.5 A44 44 0 1 0 170.5 116.6 Z"/>
+    <circle cx="173.3" cy="82.7" r="20"/>
+  </g>
+</svg>

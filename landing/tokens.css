@@ -23,7 +23,6 @@
 
   /* The brand green, as accent. Kept to a signal footprint. */
   --color-accent:         oklch(80%   0.180 158);
-  --color-accent-glow:    oklch(80%   0.180 158 / 0.18);
   --color-accent-strong:  oklch(44%   0.120 158);
   --color-accent-ink:     oklch(21%   0.010 158);
   --color-focus:          oklch(46%   0.140 158);

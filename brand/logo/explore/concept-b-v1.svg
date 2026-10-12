@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Ports concept B — Listener</title>
+  <!-- A source with two arcs radiating right: a port that is listening. -->
+  <g id="symbol" fill="#0A0A0A">
+    <circle cx="72" cy="128" r="25"/>
+  </g>
+  <g id="waves" fill="none" stroke="#0A0A0A" stroke-width="26" stroke-linecap="round">
+    <path d="M112 72.8 A68 68 0 0 1 112 183.2"/>
+    <path d="M140.6 41.9 A112 112 0 0 1 140.6 214.1"/>
+  </g>
+</svg>

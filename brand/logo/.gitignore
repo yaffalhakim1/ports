@@ -1,0 +1,9 @@
+# Rendering scratch
+renders/
+
+# Downloaded for outlining the wordmark; fetch with:
+#   curl -o Geist-600.ttf https://fonts.gstatic.com/s/geist/v5/gyBhhwUxId8gMGYQMKR3pzfaWI_RQuQ4nQ.ttf
+Geist-600.ttf
+
+# Intermediate output of outline_wordmark.py
+wordmark-paths.txt

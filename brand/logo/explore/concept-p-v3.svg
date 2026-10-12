@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Ports concept P — Letterform (v3)</title>
+  <!-- A geometric P: stem full height, bowl only the upper half (the port). -->
+  <g id="symbol" fill="#0A0A0A">
+    <path fill-rule="evenodd" d="
+      M64 32 H96 A52 52 0 0 1 96 136 H64 Z
+      M64 136 H96 V224 H64 Z
+      M96 64 A24 24 0 1 1 96 112 A24 24 0 1 1 96 64 Z"/>
+    <circle cx="96" cy="88" r="13"/>
+  </g>
+</svg>

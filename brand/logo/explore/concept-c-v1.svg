@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Ports concept C — Rows</title>
+  <!-- The list the app shows: rows of different length, the live one marked. -->
+  <g id="symbol" fill="#0A0A0A">
+    <rect x="40" y="60" width="176" height="34" rx="17"/>
+    <rect x="40" y="111" width="118" height="34" rx="17"/>
+    <rect x="40" y="162" width="150" height="34" rx="17"/>
+    <circle cx="196" cy="128" r="20"/>
+  </g>
+</svg>

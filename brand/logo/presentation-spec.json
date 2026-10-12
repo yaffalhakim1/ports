@@ -1,0 +1,33 @@
+{
+  "brand": "Ports",
+  "tagline": "See what is listening, and which project owns it",
+  "brief": "A native Windows app that lists every listening TCP port with the process that owns it, its PID, and the project folder it was started in. It should feel precise, calm and technical — the quiet, offline opposite of an Electron dashboard.",
+  "adjectives": ["precise", "calm", "technical", "quiet"],
+  "criteria": "Success: reads as a port opening without a network-globe cliche; distinct from blue dev-tool marks; legible at 16 px; works in one colour and on the dark tray.",
+  "industry": "software",
+  "nav": ["What it does", "Download", "GitHub"],
+  "brand_color": "#26E085",
+  "greyscale": false,
+  "designer": "Ports",
+  "round": 1,
+  "concepts": [
+    {
+      "name": "Socket",
+      "symbol": "ports-symbol.svg",
+      "lockup": "ports-horizontal.svg",
+      "idea": "A port opening: a bold ring with a gap, and the live indicator dot sitting in it.",
+      "rationale": [
+        "Reads as a socket / port opening without the network-globe cliche",
+        "The dot is the listener the app is about",
+        "Holds up at 16 px as a favicon and tray icon",
+        "Built from one ring and one dot, on a 4-unit grid"
+      ]
+    }
+  ],
+  "recommendation": "Socket — the mark carries the product's meaning (a listening port) in the simplest possible geometry, and it scales from tray to installer.",
+  "next_steps": [
+    "Approve the mark and colour",
+    "Ship the icon set into the app and landing page",
+    "Extend to a small usage guide"
+  ]
+}

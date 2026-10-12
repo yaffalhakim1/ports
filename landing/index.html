@@ -99,11 +99,9 @@ a { color: inherit; }
   line-height: 1;
   text-decoration: none;
 }
-.wordmark__dot {
-  width: 0.55em; height: 0.55em;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-glow);
+.wordmark__mark {
+  width: 1.15em; height: 1.15em;
+  display: block;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────── */
@@ -399,7 +397,7 @@ a:focus-visible {
 
 <header class="nav">
   <div class="nav__inner">
-    <a class="wordmark" href="#top"><span class="wordmark__dot" aria-hidden="true"></span>Ports</a>
+    <a class="wordmark" href="#top"><img class="wordmark__mark" src="assets/mark.svg" width="22" height="22" alt="">Ports</a>
     <a class="btn btn--ghost" href="#get">Download</a>
   </div>
 </header>
@@ -523,7 +521,7 @@ a:focus-visible {
 <footer class="container foot">
   <p class="foot__line reveal" style="--i:0">Offline, private, instant.</p>
   <div class="foot__meta reveal" style="--i:1">
-    <span class="wordmark foot__brand"><span class="wordmark__dot" aria-hidden="true"></span>Ports</span>
+    <span class="wordmark foot__brand"><img class="wordmark__mark" src="assets/mark.svg" width="18" height="18" alt="">Ports</span>
     <nav class="foot__links" aria-label="Footer">
       <a href="https://github.com/yaffalhakim1/ports">GitHub</a>
       <a href="https://github.com/yaffalhakim1/ports/blob/main/LICENSE">MIT Licence</a>

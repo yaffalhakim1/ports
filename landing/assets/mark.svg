@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Ports — socket mark</title>
+  <!-- A port opening: a bold ring with a gap, the live indicator dot in it.
+       Ring outer r=84, inner r=44; the gap spans 70° (from -80° to -10°);
+       the dot (r=20) sits at r=64 on the gap's centre line (-45°), so it
+       spans the ring's thickness exactly — a bead in the socket. -->
+  <g id="symbol" fill="#0A0A0A">
+    <path fill-rule="evenodd" d="
+      M210.72 113.41
+      A84 84 0 1 1 142.59 45.28
+      L135.64 84.67
+      A44 44 0 1 0 171.33 120.36
+      Z"/>
+    <circle cx="173.25" cy="82.75" r="20"/>
+  </g>
+</svg>

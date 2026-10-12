@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Ports concept A — Socket</title>
+  <!-- A port opening: a bold ring, with a live indicator dot on the rim. -->
+  <g id="symbol" fill="#0A0A0A">
+    <path fill-rule="evenodd" d="
+      M44 128 A84 84 0 1 0 212 128 A84 84 0 1 0 44 128 Z
+      M84 128 A44 44 0 1 1 172 128 A44 44 0 1 1 84 128 Z"/>
+    <circle cx="189" cy="67" r="25"/>
+  </g>
+</svg>
