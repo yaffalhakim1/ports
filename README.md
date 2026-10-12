@@ -43,7 +43,9 @@ It is built with [MyGo](https://github.com/egoist/mygo) - pure Go, no cgo, no we
 
 ## Install
 
-Download the installer from [Releases](../../releases) and run it. It installs per user to `%LOCALAPPDATA%\Programs\ports` with no administrator prompt, and adds a Start Menu entry. Uninstall from Settings, Apps.
+Download the installer from [Releases](../../releases/latest) and run it. It installs per user to `%LOCALAPPDATA%\Programs\ports` with no administrator prompt, and adds a Start Menu entry. Uninstall from Settings, Apps.
+
+More at [yaffalhakim1.github.io/ports](https://yaffalhakim1.github.io/ports/).
 
 ## Build
 
