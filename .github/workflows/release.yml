@@ -29,13 +29,39 @@ jobs:
             throw "tag $tag does not match the version $version in mygo.json (expected v$version)"
           }
 
-      - name: Build and upload
+      # Signed build: the update archive and manifest of each platform, the
+      # executable, and the installer. Uploaded below by hand, because the
+      # installers of both architectures share a name and a release cannot
+      # hold two assets of one name.
+      - name: Build
         env:
-          GH_TOKEN: ${{ github.token }}
           MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
-        run: go tool mygo build -platform "windows/amd64,windows/arm64" -upload
+        run: go tool mygo build -platform "windows/amd64,windows/arm64"
+
+      - name: Collect the release assets
+        shell: pwsh
+        run: |
+          $version = (Get-Content mygo.json | ConvertFrom-Json).version
+          New-Item -ItemType Directory -Force dist | Out-Null
+          foreach ($arch in "amd64", "arm64") {
+            $dir = "build/windows-$arch"
+            # Names the update manifest references stay exactly as built.
+            Copy-Item "$dir/ports-$version-windows-$arch.tar.gz" dist/
+            Copy-Item "$dir/update-windows-$arch.json" dist/
+            # Disambiguate the files both architectures share a name for.
+            Copy-Item "$dir/ports Setup $version.exe" "dist/ports-$version-windows-$arch-setup.exe"
+            Copy-Item "$dir/ports.exe" "dist/ports-$version-windows-$arch.exe"
+          }
+          Get-ChildItem dist | Select-Object -ExpandProperty Name
 
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release edit "${{ github.ref_name }}" --repo "${{ github.repository }}" --draft=false
+        shell: pwsh
+        run: |
+          $assets = Get-ChildItem dist | ForEach-Object { $_.FullName }
+          gh release create "${{ github.ref_name }}" `
+            --repo "${{ github.repository }}" `
+            --title "${{ github.ref_name }}" `
+            --generate-notes `
+            $assets
