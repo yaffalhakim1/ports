@@ -75,17 +75,23 @@ Reading the command line *before* stopping a process is what makes restart work:
 ## Layout
 
 ```
-port.go                      what a port is, and its address
-scan.go                      the scan, filtering and sorting
-scan_windows.go              the TCP tables, from iphlpapi
-process_windows.go           the PEB: working directory and command line
-process_control_windows.go   stopping and restarting
-proc_windows.go              process names, from a toolhelp snapshot
-cmdline.go                   splitting a Windows command line
-palette.go theme.go          the colour system
-app.go actions.go            state, and what the buttons do
-view_*.go                    the window: header, table, footer
-tray.go trayicon.go          the notification area icon
+main.go                        the entry point: builds the window and starts the app
+internal/port/port.go          what a port is, and its address (pure model)
+internal/host/                 reading and controlling the machine
+  scan.go                      the scan, by PID
+  scan_windows.go              the TCP tables, from iphlpapi
+  process_windows.go           the PEB: working directory and command line
+  process_control_windows.go   stopping and restarting
+  proc_windows.go              process names, from a toolhelp snapshot
+  cmdline.go                   splitting a Windows command line
+internal/app/                  the window
+  app.go                       state, and the background scan loop
+  list.go                      filtering and sorting
+  actions.go                   what the buttons do
+  view_*.go                    the window: header, table, footer
+  theme.go palette.go color.go icons.go appearance.go   the look
+  tray.go trayicon.go          the notification area icon
+  settings.go                  the remembered appearance
 ```
 
 ## Licence
