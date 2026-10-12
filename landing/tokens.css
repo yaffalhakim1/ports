@@ -1,0 +1,82 @@
+/* Hallmark tokens · theme: custom (ports brand palette) · axes: light / geometric-sans / chromatic-other (green) */
+:root {
+  /* Paper — near-white, tinted toward the brand green (hue 158). */
+  --color-paper:          oklch(99%   0.004 158);
+  --color-paper-2:        oklch(96.5% 0.006 158);
+  --color-surface:        oklch(99.7% 0.002 158);
+
+  /* Hairlines and greys. */
+  --color-rule:           oklch(91.5% 0.005 158);
+  --color-rule-2:         oklch(94%   0.004 158);
+  --color-neutral:        oklch(70%   0.006 158);
+
+  /* Ink. */
+  --color-ink:            oklch(24%   0.010 158);
+  --color-ink-hover:      oklch(18%   0.012 158);
+  --color-ink-2:          oklch(36%   0.008 158);
+  --color-muted:          oklch(46%   0.010 158);
+
+  /* The brand green, as accent. Kept to a signal footprint. */
+  --color-accent:         oklch(80%   0.180 158);
+  --color-accent-glow:    oklch(80%   0.180 158 / 0.18);
+  --color-accent-strong:  oklch(44%   0.120 158);
+  --color-accent-ink:     oklch(21%   0.010 158);
+  --color-focus:          oklch(46%   0.140 158);
+
+  /* Faces — one family, plus a mono outlier for figures. */
+  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-body:    "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: "Geist Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Spacing — 4pt scale, named by role. */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs:  0.5rem;
+  --space-sm:  0.75rem;
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 9rem;
+
+  /* Type scale — 1.25 major third, from a 16px body. */
+  --text-xs:      0.64rem;
+  --text-sm:      0.8rem;
+  --text-base:    1rem;
+  --text-md:      1.25rem;
+  --text-lg:      1.5625rem;
+  --text-xl:      1.9531rem;
+  --text-2xl:     2.4414rem;
+  --text-3xl:     3.0518rem;
+  --text-display: clamp(2.5rem, 4.5vw + 1rem, 4.5rem);
+
+  /* Motion. */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long:  420ms;
+
+  /* Geometry. */
+  --rule-hair:  1px;
+  --radius:     12px;
+  --radius-lg:  18px;
+  --radius-pill: 999px;
+  --page-gutter: clamp(1.25rem, 5vw, 4rem);
+  --measure:     62ch;
+
+  /* Depth — one hairline, never stacked shadows. */
+  --shadow-whisper: 0 1px 2px oklch(24% 0.01 158 / 0.05);
+
+  /* Z — six named levels. */
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-sticky-nav: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+}
