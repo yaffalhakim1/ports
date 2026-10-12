@@ -14,7 +14,9 @@
 /* Hallmark · macrostructure: Workbench · H2 hero knobs: ratio=7/5, divider=negative-space
  * theme: custom · vibe: "clean, white, precise, Apple-calm" · paper: oklch(99% 0.004 158) · accent: oklch(80% 0.180 158)
  * display: Geist · body: Geist · axes: light / geometric-sans / chromatic-other (green)
- * nav: N9 · footer: Ft5 · enrichment: none · contrast: pass (40–41) · mobile: pass (34, 49–57)
+ * nav: N9 (translucent material) · footer: Ft5 · enrichment: none · contrast: pass (40–41) · mobile: pass (34, 49–57)
+ * apple-design: translucent nav + scroll-edge fade, press-on-pointer-down feedback, optical sizing,
+ *   reduced-motion / reduced-transparency / more-contrast fallbacks
  * studied: no · context: inferred · v1.1.0
  */
 
@@ -42,6 +44,7 @@ h1, h2, h3 {
   margin: 0;
   overflow-wrap: anywhere;
   min-width: 0;
+  font-optical-sizing: auto;
 }
 p { margin: 0; }
 img { display: block; max-width: 100%; height: auto; }
@@ -54,8 +57,17 @@ a { color: inherit; }
   padding-inline: var(--page-gutter);
 }
 
-/* ── Nav · N9 edge-aligned minimal ───────────────────────────── */
+/* ── Nav · N9 edge-aligned minimal, translucent material ─────── */
 .nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-nav);
+  background: var(--color-nav-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: var(--rule-hair) solid var(--color-nav-edge);
+}
+.nav__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -64,6 +76,16 @@ a { color: inherit; }
   max-width: 1180px;
   margin-inline: auto;
   padding-inline: var(--page-gutter);
+}
+/* Scroll-edge effect: content fades under the chrome, no hard divider. */
+.nav::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: var(--space-lg);
+  background: linear-gradient(var(--color-nav-fade), transparent);
+  pointer-events: none;
 }
 .wordmark {
   display: inline-flex;
@@ -102,27 +124,26 @@ a { color: inherit; }
   cursor: pointer;
   transition: background-color var(--dur-short) var(--ease-out),
               border-color var(--dur-short) var(--ease-out),
-              transform var(--dur-micro) var(--ease-out);
+              transform 100ms var(--ease-out);
 }
 .btn--primary {
   background: var(--color-ink);
   color: var(--color-paper);
 }
-.btn--primary:hover { transform: translateY(-1.5px); background: var(--color-ink-hover); }
-.btn--primary:active { transform: translateY(0); }
+.btn--primary:hover { background: var(--color-ink-hover); }
 .btn--ghost {
   background: transparent;
   border-color: var(--color-rule);
   color: var(--color-ink);
 }
-.btn--ghost:hover { border-color: var(--color-ink); transform: translateY(-1.5px); }
-.btn--ghost:active { transform: translateY(0); }
+.btn--ghost:hover { border-color: var(--color-ink); }
 .btn--accent {
   background: var(--color-accent);
   color: var(--color-accent-ink);
 }
-.btn--accent:hover { transform: translateY(-1.5px); }
-.btn--accent:active { transform: translateY(0); }
+/* Feedback on the press, instant — never wait for release. */
+.btn:hover { transform: translateY(-1.5px); }
+.btn:active { transform: scale(0.97); }
 .btn:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
@@ -345,6 +366,19 @@ a:focus-visible {
   .btn:hover, .btn:active { transform: none; }
 }
 
+/* Apple §14 — reduced transparency: frostier, solid chrome. */
+@media (prefers-reduced-transparency: reduce) {
+  .nav { background: var(--color-paper); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .nav::after { background: none; }
+}
+
+/* Apple §14 — more contrast: defined border on the chrome. */
+@media (prefers-contrast: more) {
+  .nav { background: var(--color-paper); backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom-color: var(--color-ink); }
+  .btn--ghost { border-color: var(--color-ink); }
+  .shot__frame { border-color: var(--color-ink); }
+}
+
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 56rem) {
   .hero__grid { grid-template-columns: minmax(0, 1fr); }
@@ -363,8 +397,10 @@ a:focus-visible {
 <body>
 
 <header class="nav">
-  <a class="wordmark" href="#top"><span class="wordmark__dot" aria-hidden="true"></span>Ports</a>
-  <a class="btn btn--ghost" href="#get">Download</a>
+  <div class="nav__inner">
+    <a class="wordmark" href="#top"><span class="wordmark__dot" aria-hidden="true"></span>Ports</a>
+    <a class="btn btn--ghost" href="#get">Download</a>
+  </div>
 </header>
 
 <main id="top">

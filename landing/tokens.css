@@ -10,6 +10,11 @@
   --color-rule-2:         oklch(94%   0.004 158);
   --color-neutral:        oklch(70%   0.006 158);
 
+  /* Translucent material for floating chrome (alpha is a modifier, not a colour). */
+  --color-nav-bg:         oklch(99%   0.004 158 / 0.72);
+  --color-nav-fade:       oklch(99%   0.004 158 / 0.85);
+  --color-nav-edge:       oklch(99%   0.004 158 / 0.55);
+
   /* Ink. */
   --color-ink:            oklch(24%   0.010 158);
   --color-ink-hover:      oklch(18%   0.012 158);
