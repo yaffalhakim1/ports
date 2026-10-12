@@ -7,3 +7,6 @@ mygo_windows_*.syso
 /ports.exe
 /out.txt
 /err.txt
+
+# Hallmark design-skill log (local to the machine)
+/.hallmark/
