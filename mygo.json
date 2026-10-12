@@ -2,5 +2,9 @@
   "name": "ports",
   "identifier": "dev.yafit.ports",
   "version": "0.1.0",
-  "out": "build"
+  "out": "build",
+  "updates": {
+    "publicKey": "/gGTen7qYhFokGN5GPRbryjOsFDaS1wCuHYBEMePGNU=",
+    "github": "yaffalhakim1/ports"
+  }
 }

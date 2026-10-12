@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/plugins/updater"
 )
 
 // tray puts an icon in the notification area and keeps the app alive there
@@ -19,6 +20,8 @@ func (a *App) StartTray() {
 		ToolTip:        "Ports — listening TCP ports",
 		Menu: mygo.NewMenu([]*mygo.MenuItem{
 			{Label: "Show Ports", Click: func(*mygo.MenuItem, *mygo.Window) { a.showWindow() }},
+			mygo.Separator(),
+			updater.MenuItem(),
 			mygo.Separator(),
 			{Label: "Quit", Click: func(*mygo.MenuItem, *mygo.Window) { a.quit() }},
 		}),

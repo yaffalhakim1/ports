@@ -20,10 +20,7 @@ jobs:
       - name: Test
         run: go test ./...
 
-      - name: Build
-        run: go tool mygo build -platform "windows/amd64,windows/arm64"
-
-      - name: Collect the release assets
+      - name: Check the tag against the version
         shell: pwsh
         run: |
           $version = (Get-Content mygo.json | ConvertFrom-Json).version
@@ -31,21 +28,14 @@ jobs:
           if ($tag -ne "v$version") {
             throw "tag $tag does not match the version $version in mygo.json (expected v$version)"
           }
-          New-Item -ItemType Directory -Force dist | Out-Null
-          foreach ($arch in "amd64", "arm64") {
-            Copy-Item "build/windows-$arch/ports Setup $version.exe" "dist/ports-$version-windows-$arch-setup.exe"
-            Copy-Item "build/windows-$arch/ports.exe" "dist/ports-$version-windows-$arch.exe"
-          }
-          Get-ChildItem dist | Select-Object -ExpandProperty Name
+
+      - name: Build and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
+        run: go tool mygo build -platform "windows/amd64,windows/arm64" -upload
 
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $assets = Get-ChildItem dist | ForEach-Object { $_.FullName }
-          gh release create "${{ github.ref_name }}" `
-            --repo "${{ github.repository }}" `
-            --title "${{ github.ref_name }}" `
-            --generate-notes `
-            $assets
+        run: gh release edit "${{ github.ref_name }}" --repo "${{ github.repository }}" --draft=false
