@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ports — see what is listening, and which project owns it</title>
+<meta name="description" content="A native Windows app that lists every listening TCP port with the process that owns it, its PID, and the folder it was started in.">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="anatomy/figure.css">
+<style>
+/* Hallmark · macrostructure: Workbench · hero knobs: ratio=7/5, divider=negative-space
+ * theme: custom · vibe: "clean, white, precise, Apple-calm" · paper: oklch(99% 0.004 158) · accent: oklch(80% 0.180 158)
+ * display: Geist · body: Geist · axes: light / geometric-sans / chromatic-other (green)
+ * nav: N9 (translucent material) · footer: Ft5 · enrichment: the port indexer figure (landing/anatomy)
+ * apple-design: translucent nav + scroll-edge fade, press-on-pointer-down feedback, optical sizing,
+ *   reduced-motion / reduced-transparency / more-contrast fallbacks
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { overflow-x: clip; scroll-behavior: smooth; }
+body { overflow-x: clip; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-style: normal;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  font-optical-sizing: auto;
+}
+p { margin: 0; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; }
+
+.container {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+/* ── Nav · N9 edge-aligned minimal, translucent material ─────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-nav);
+  background: var(--color-nav-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: var(--rule-hair) solid var(--color-nav-edge);
+}
+.nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-block: var(--space-md);
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+.nav::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: var(--space-lg);
+  background: linear-gradient(var(--color-nav-fade), transparent);
+  pointer-events: none;
+}
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-decoration: none;
+}
+.wordmark__mark { width: 1.15em; height: 1.15em; display: block; }
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 46px;
+  padding: 0 var(--space-lg);
+  border-radius: var(--radius-pill);
+  border: var(--rule-hair) solid transparent;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-short) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out),
+              transform 100ms var(--ease-out);
+}
+.btn--primary { background: var(--color-ink); color: var(--color-paper); }
+.btn--primary:hover { background: var(--color-ink-hover); }
+.btn--ghost { background: transparent; border-color: var(--color-rule); color: var(--color-ink); }
+.btn--ghost:hover { border-color: var(--color-ink); }
+.btn--accent { background: var(--color-accent); color: var(--color-accent-ink); }
+.btn:hover { transform: translateY(-1.5px); }
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+.btn[aria-disabled="true"], .btn:disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+
+/* ── Hero ────────────────────────────────────────────────────── */
+.hero { padding-block-start: var(--space-2xl); padding-block-end: var(--space-2xl); }
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: var(--space-xl) var(--space-2xl);
+  align-items: end;
+}
+.hero__title { font-size: var(--text-display); font-weight: 600; grid-column: 1 / -1; max-width: 18ch; }
+.hero__lede { font-size: var(--text-md); color: var(--color-ink-2); max-width: 46ch; }
+.code-inline { font-family: var(--font-outlier); font-size: 0.9em; color: var(--color-ink-2); }
+.link-accent { color: var(--color-accent-strong); }
+a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius); }
+.hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-self: end; justify-content: flex-end; }
+.hero__note { grid-column: 1 / -1; margin-block-start: var(--space-sm); font-size: var(--text-sm); color: var(--color-muted); }
+
+/* ── Figures — real captures, no re-drawn chrome ─────────────── */
+.shot { padding-block: var(--space-xl) var(--space-2xl); }
+.shot__frame {
+  margin: 0;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-whisper);
+}
+.shot__frame img { width: 100%; }
+.shot__cap { margin-block-start: var(--space-sm); font-size: var(--text-sm); color: var(--color-muted); max-width: var(--measure); }
+
+/* ── Section head · S2 hanging ───────────────────────────────── */
+.head { padding-block-start: var(--space-3xl); padding-block-end: var(--space-xl); }
+.head__title { font-size: var(--text-2xl); font-weight: 600; max-width: 22ch; }
+.head__sub { margin-block-start: var(--space-sm); font-size: var(--text-md); color: var(--color-ink-2); max-width: var(--measure); }
+
+/* ── Spec sheet · F3 tabular ─────────────────────────────────── */
+.spec { padding-block-end: var(--space-2xl); }
+.spec__row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.5fr) minmax(0, 1fr);
+  gap: var(--space-md) var(--space-xl);
+  padding-block: var(--space-md);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  align-items: baseline;
+}
+.spec__row:last-child { border-bottom: var(--rule-hair) solid var(--color-rule); }
+.spec__key { font-size: var(--text-sm); color: var(--color-muted); letter-spacing: 0.01em; }
+.spec__val { font-size: var(--text-base); color: var(--color-ink); }
+
+/* ── Feature list — asymmetric typographic grid, no icon tiles ── */
+.features {
+  padding-block: var(--space-2xl) var(--space-3xl);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--space-2xl) var(--space-2xl);
+}
+.feature:nth-child(odd) { padding-block-start: var(--space-lg); }
+.feature__title { font-size: var(--text-md); font-weight: 600; letter-spacing: -0.02em; }
+.feature__body { margin-block-start: var(--space-xs); color: var(--color-ink-2); font-size: var(--text-base); max-width: 46ch; }
+
+/* ── States — two captures ───────────────────────────────────── */
+.states {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-xl);
+  padding-block-end: var(--space-3xl);
+}
+.states figure { margin: 0; }
+
+/* ── CTA strip ───────────────────────────────────────────────── */
+.cta {
+  padding-block: var(--space-3xl);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+.cta__line {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  max-width: 20ch;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* ── Footer · Ft5 statement ──────────────────────────────────── */
+.foot { padding-block: var(--space-2xl) var(--space-xl); display: grid; gap: var(--space-lg); }
+.foot__line {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  max-width: 24ch;
+  margin: 0;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.foot__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-md);
+  padding-block-start: var(--space-sm);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+.foot__links { display: flex; gap: var(--space-md); }
+.foot__links a { text-decoration: none; white-space: nowrap; }
+.foot__links a:hover { color: var(--color-accent-strong); }
+.foot__brand { font-size: var(--text-base); }
+
+/* ── Reveal — one orchestrated entrance, opt-in on motion ─────── */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: reveal var(--dur-long) var(--ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  @keyframes reveal { to { opacity: 1; transform: none; } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+  .btn:hover, .btn:active { transform: none; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .nav { background: var(--color-paper); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .nav::after { background: none; }
+}
+
+@media (prefers-contrast: more) {
+  .nav { background: var(--color-paper); backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom-color: var(--color-ink); }
+  .btn--ghost { border-color: var(--color-ink); }
+  .shot__frame { border-color: var(--color-ink); }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 56rem) {
+  .hero__grid { grid-template-columns: minmax(0, 1fr); }
+  .hero__actions { justify-content: flex-start; }
+  .features { grid-template-columns: minmax(0, 1fr); }
+  .feature:nth-child(odd) { padding-block-start: 0; }
+  .spec__row { grid-template-columns: minmax(0, 1fr); gap: var(--space-3xs); }
+}
+@media (max-width: 40rem) {
+  .hero__title { font-size: clamp(2.1rem, 9vw, 3rem); }
+  .cta { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav__inner">
+    <a class="wordmark" href="#top"><img class="wordmark__mark" src="assets/mark.svg" width="22" height="22" alt="">Ports</a>
+    <a class="btn btn--ghost" href="#get">Download</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero container" aria-labelledby="hero-title">
+    <div class="hero__grid">
+      <h1 class="hero__title reveal" id="hero-title" style="--i:0">See what is listening, and which project owns it.</h1>
+      <p class="hero__lede reveal" style="--i:1">
+        A native Windows app that lists every listening TCP port with the process that owns it,
+        its PID, and the folder it was started in. <code class="code-inline">netstat</code>
+        tells you a port is taken. This tells you which project took it.
+      </p>
+      <div class="hero__actions reveal" style="--i:2">
+        <a class="btn btn--primary" href="#get">Download for Windows</a>
+        <a class="btn btn--ghost" href="#what">What it does</a>
+      </div>
+      <p class="hero__note reveal" style="--i:3">One 11&nbsp;MB binary · no runtime to install · opens instantly</p>
+    </div>
+  </section>
+
+  <section class="container" id="index" aria-labelledby="index-title">
+    <div class="head">
+      <h2 class="head__title reveal" id="index-title" style="--i:0">Every port is a socket, and its number is its height.</h2>
+      <p class="head__sub reveal" style="--i:1">A bench indexer reads the machine the way the app does: one socket per listener, standing as tall as its port number, with the ports another machine can reach sitting in wide collars. Move the pointer across the row, or use the arrow keys.</p>
+    </div>
+    <div class="reveal" style="--i:2">{{figure}}</div>
+  </section>
+
+  <section class="shot container" aria-label="The app in use">
+    <figure class="shot__frame reveal" style="--i:1">
+      <img src="assets/screenshot.png" width="1000" height="700"
+           alt="Ports showing a table of listening TCP ports: port number, process name, project folder, bind address and PID, with Open, Copy, Restart and Stop actions for the selected row.">
+    </figure>
+    <p class="shot__cap reveal" style="--i:2">The app itself: every listening port, the process behind it, and the folder it serves. Sort by any column; search across all of them.</p>
+  </section>
+
+  <section class="container" id="what">
+    <div class="head">
+      <h2 class="head__title reveal" style="--i:0">Built for the question “what just took port 3000?”</h2>
+      <p class="head__sub reveal" style="--i:1">No dashboard to configure, no agent to run. It reads the system the way Windows itself does, then gets out of the way.</p>
+    </div>
+
+    <div class="features">
+      <div class="feature reveal" style="--i:1">
+        <h3 class="feature__title">The folder, not just the port</h3>
+        <p class="feature__body">Two servers of the same program are told apart by the project each one serves. The working directory is read from the process itself.</p>
+      </div>
+      <div class="feature reveal" style="--i:2">
+        <h3 class="feature__title">Exposed only</h3>
+        <p class="feature__body">One filter keeps the ports another machine could reach — the honest answer to “did I just expose a dev server?”.</p>
+      </div>
+      <div class="feature reveal" style="--i:3">
+        <h3 class="feature__title">Stop or restart, safely</h3>
+        <p class="feature__body">Every destructive action asks first and names the process. A restart reuses the original command line and working directory.</p>
+      </div>
+      <div class="feature reveal" style="--i:4">
+        <h3 class="feature__title">Current without asking</h3>
+        <p class="feature__body">It rescans every two seconds, off the UI thread, so the list stays live. Close it and it keeps watching from the tray.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container spec" aria-label="Specifications">
+    <div class="spec__row reveal" style="--i:0">
+      <span class="spec__key">Platform</span>
+      <span class="spec__val">Windows, 64-bit</span>
+    </div>
+    <div class="spec__row reveal" style="--i:1">
+      <span class="spec__key">Runtime</span>
+      <span class="spec__val">None — a single 11&nbsp;MB binary, no webview, no cgo</span>
+    </div>
+    <div class="spec__row reveal" style="--i:2">
+      <span class="spec__key">Stack</span>
+      <span class="spec__val">Go with <a class="link-accent" href="https://github.com/egoist/mygo">MyGo</a> — pure Go, no cgo, no webview</span>
+    </div>
+    <div class="spec__row reveal" style="--i:3">
+      <span class="spec__key">Scan</span>
+      <span class="spec__val">Every 2 seconds, on a background thread</span>
+    </div>
+    <div class="spec__row reveal" style="--i:4">
+      <span class="spec__key">Protocols</span>
+      <span class="spec__val">IPv4 and IPv6</span>
+    </div>
+    <div class="spec__row reveal" style="--i:5">
+      <span class="spec__key">Install</span>
+      <span class="spec__val">Per user, no administrator prompt</span>
+    </div>
+    <div class="spec__row reveal" style="--i:6">
+      <span class="spec__key">Licence</span>
+      <span class="spec__val">MIT</span>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="head">
+      <h2 class="head__title reveal" style="--i:0">The quiet states matter too</h2>
+      <p class="head__sub reveal" style="--i:1">Nothing listening, nothing matching, a process it may not end — each says so plainly, and offers the next step.</p>
+    </div>
+    <div class="states">
+      <figure class="reveal" style="--i:1">
+        <div class="shot__frame">
+          <img src="assets/empty-search.png" width="900" height="620" loading="lazy"
+               alt="The empty state after a search matches nothing: it names the query and offers a Clear search button.">
+        </div>
+        <figcaption class="shot__cap">A search with no matches names what was searched for, and offers a way out.</figcaption>
+      </figure>
+      <figure class="reveal" style="--i:2">
+        <div class="shot__frame">
+          <img src="assets/window-disabled.png" width="900" height="620" loading="lazy"
+               alt="A system process selected: Stop and Restart are disabled and explain why.">
+        </div>
+        <figcaption class="shot__cap">A system process cannot be ended — the buttons are disabled and say why.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="container cta" id="get">
+    <p class="cta__line reveal" style="--i:0">Know what your machine is serving.</p>
+    <div class="hero__actions reveal" style="--i:1">
+      <a class="btn btn--accent" href="https://github.com/yaffalhakim1/ports/releases/latest">Download the installer</a>
+      <a class="btn btn--ghost" href="https://github.com/yaffalhakim1/ports">Read the source</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="container foot">
+  <p class="foot__line reveal" style="--i:0">Offline, private, instant.</p>
+  <div class="foot__meta reveal" style="--i:1">
+    <span class="wordmark foot__brand"><img class="wordmark__mark" src="assets/mark.svg" width="18" height="18" alt="">Ports</span>
+    <nav class="foot__links" aria-label="Footer">
+      <a href="https://github.com/yaffalhakim1/ports">GitHub</a>
+      <a href="https://github.com/yaffalhakim1/ports/blob/main/LICENSE">MIT Licence</a>
+      <span>© 2026</span>
+    </nav>
+  </div>
+</footer>
+
+<script type="module" src="anatomy/figure.js"></script>
+</body>
+</html>

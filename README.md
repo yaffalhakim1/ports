@@ -57,6 +57,24 @@ go tool mygo dev        # run with live reload
 go test ./...           # the tests
 ```
 
+## Landing page
+
+`landing/` is the site GitHub Pages publishes. Its figure — a bench indexer that
+stands one socket per listening port, as tall as the port's number — is built
+from the app's own model by the kit in `landing/anatomy/`.
+
+```sh
+cd landing/anatomy
+node build.mjs --audit   # rebuild index.html and prove the figure's geometry
+node build.mjs --light   # the light-theme build of the figure on its own
+```
+
+`build.mjs` writes `landing/index.html` (from `landing/page.template.html`),
+`anatomy/figure.css` and `anatomy/figure.js`. Editing the drawing means editing
+`build.mjs`, never `index.html`. The audit must end `audit passed`; the line
+check (`node scripts/lines.mjs ../index.html`) must report `0 of … ends … float`.
+Needs Node 20.10+ and Chrome for the checks.
+
 ## How it works
 
 Two things are worth knowing, because they are not the obvious approach.
