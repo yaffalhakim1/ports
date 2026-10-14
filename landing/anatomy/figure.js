@@ -673,22 +673,18 @@ const ISO_CSS = `
 @media (prefers-reduced-motion:reduce){.iso-line[data-flow],.iso-dots circle[data-pulse]{animation:none}}
 `;
 
-const ROWS = [{"port":3000,"name":"node.exe","folder":"portfolio","addr":"127.0.0.1","exposed":false,"x":-110,"top":8.105745021744106,"fx":0.29565217391304344},{"port":5173,"name":"node.exe","folder":"waku","addr":"127.0.0.1","exposed":false,"x":-78,"top":9.631006332494087,"fx":0.3423602484472049},{"port":5432,"name":"postgres.exe","folder":"portfolio","addr":"127.0.0.1","exposed":false,"x":-46,"top":9.812802319371329,"fx":0.38906832298136634},{"port":8644,"name":"python.exe","folder":"hermes","addr":"::","exposed":true,"x":-14,"top":12.067353322652018,"fx":0.4357763975155278},{"port":8888,"name":"python.exe","folder":"hermes","addr":"127.0.0.1","exposed":false,"x":18,"top":12.238620584420538,"fx":0.4824844720496893},{"port":34123,"name":"waku-daemon","folder":"waku","addr":"0.0.0.0","exposed":true,"x":50,"top":29.951445792324712,"fx":0.5291925465838508},{"port":51467,"name":"opencode.exe","folder":"portfolio","addr":"127.0.0.1","exposed":false,"x":82,"top":42.12545967803464,"fx":0.5759006211180123},{"port":63502,"name":"ABDownload.exe","folder":"system32","addr":"127.0.0.1","exposed":false,"x":114,"top":50.57300679026474,"fx":0.6226086956521738}];
-const P = {"origin":[276.73043478260865,260.0139454381546],"scale":0.9138712603694793,"azimuth":45,"elevation":30};
+(function(){
+
+const ROWS = [{"port":3000,"name":"node.exe","folder":"portfolio","addr":"127.0.0.1","exposed":false,"x":-110,"top":8.105745021744106,"fx":0.26304347826086955},{"port":5173,"name":"node.exe","folder":"waku","addr":"127.0.0.1","exposed":false,"x":-78,"top":9.631006332494087,"fx":0.31720496894409933},{"port":5432,"name":"postgres.exe","folder":"portfolio","addr":"127.0.0.1","exposed":false,"x":-46,"top":9.812802319371329,"fx":0.37136645962732917},{"port":8644,"name":"python.exe","folder":"hermes","addr":"::","exposed":true,"x":-14,"top":12.067353322652018,"fx":0.42552795031055896},{"port":8888,"name":"python.exe","folder":"hermes","addr":"127.0.0.1","exposed":false,"x":18,"top":12.238620584420538,"fx":0.47968944099378874},{"port":34123,"name":"waku-daemon","folder":"waku","addr":"0.0.0.0","exposed":true,"x":50,"top":29.951445792324712,"fx":0.5338509316770187},{"port":51467,"name":"opencode.exe","folder":"portfolio","addr":"127.0.0.1","exposed":false,"x":82,"top":42.12545967803464,"fx":0.5880124223602484},{"port":63502,"name":"ABDownload.exe","folder":"system32","addr":"127.0.0.1","exposed":false,"x":114,"top":50.57300679026474,"fx":0.6421739130434783}];
+const P = {"origin":[276.2086956521739,264.005532476158],"scale":1.0597017806412048,"azimuth":45,"elevation":30};
 const DIAL = [150,-66];
 const DIAL_R = 18, DIAL_TOP = 80, PORT_MAX = 65535;
 const REST_X = -110, REST_TOP = 8.105745021744106, SAFE_LIFT = 20;
 const REACH = [ROWS[0].x, ROWS[ROWS.length - 1].x];
-
-const needleAt = function needleAt(port) {
+const needleAt = (port) => {
   const angle = (port / PORT_MAX) * Math.PI * 2;
   const [x, y] = DIAL;
-  return lineOnTop(
-    [x - Math.sin(angle) * 3.4, y + Math.cos(angle) * 3.4],
-    [x + Math.sin(angle) * (DIAL_R - 4), y - Math.cos(angle) * (DIAL_R - 4)],
-    DIAL_TOP + 0.2,
-    P,
-  );
+  return lineOnTop([x - Math.sin(angle) * 3.4, y + Math.cos(angle) * 3.4], [x + Math.sin(angle) * (DIAL_R - 4), y - Math.cos(angle) * (DIAL_R - 4)], DIAL_TOP + 0.2, P);
 };
 
 function mount(root) {
@@ -697,31 +693,25 @@ function mount(root) {
   const carriage = svg.querySelector('[data-part="carriage"]');
   const probe = svg.querySelector('[data-part="probe"]');
   const needle = svg.querySelector('[data-part="needle"]');
-  const readout = document.querySelector("[data-readout]");
+  // This figure's own readout: three figures share one page, and the first one in
+  // the document is not necessarily this one.
+  const readout = (stage.closest(".iso-figure") || document).querySelector("[data-readout]");
+  const status = stage.querySelector("[data-status]");
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
-
   const rowAt = (x) => clamp((x - ROWS[0].x) / (ROWS[1].x - ROWS[0].x), 0, ROWS.length - 1);
   const nearest = (x) => ROWS[Math.round(rowAt(x))];
-  const share = (x) => (x - ROWS[0].x) / (REACH[1] - REACH[0]);
-
   let x = REST_X, target = REST_X, probeZ = REST_TOP, rate = 0;
   let frame = 0, last = 0, clock = 0, touring = true, visible = false, idleTimer = 0;
 
-  // Where a world x lands in the viewBox, so the head can be aimed at a socket
-  // by fraction without guessing at the projection.
-  const screenX = (worldX) => iso([worldX, ROW_Y, 0], P)[0] / 560;
   const rowAtScreen = (fx) => {
     let best = 0;
-    for (let index = 1; index < ROWS.length; index++) {
-      if (Math.abs(ROWS[index].fx - fx) < Math.abs(ROWS[best].fx - fx)) best = index;
-    }
+    for (let index = 1; index < ROWS.length; index++) if (Math.abs(ROWS[index].fx - fx) < Math.abs(ROWS[best].fx - fx)) best = index;
     return best;
   };
 
   function draw() {
-    const dx = x - REST_X;
-    const dz = probeZ - REST_TOP;
+    const dx = x - REST_X, dz = probeZ - REST_TOP;
     carriage.setAttribute("transform", translateAlong(P, [dx, 0, 0]));
     probe.setAttribute("transform", translateAlong(P, [dx, 0, dz]));
     // The clip must stay on the gland, which moves with the head only, so it is
@@ -731,7 +721,6 @@ function mount(root) {
     needle.setAttribute("d", needleAt(row.port));
     const text = row.port + " \u00b7 " + row.name + " \u00b7 " + row.folder + " \u00b7 " + (row.exposed ? "exposed" : "this machine only");
     if (readout.textContent !== text) readout.textContent = text;
-    const status = stage.querySelector("[data-status]");
     const said = "Port " + row.port + ", " + row.name + ", in " + row.folder + (row.exposed ? ", reachable from another machine" : ", this machine only");
     if (status.textContent !== said) status.textContent = said;
   }
@@ -742,16 +731,16 @@ function mount(root) {
     const calm = still.matches;
     if (touring) {
       clock += dt;
-      target = REACH[0] + (REACH[1] - REACH[0]) * ((clock / 1.5) % ROWS.length) / (ROWS.length - 1);
+      target = REACH[0] + ((REACH[1] - REACH[0]) * ((clock / 1.5) % ROWS.length)) / (ROWS.length - 1);
     }
     x = calm ? target : x + (target - x) * (1 - Math.exp(-dt / 0.26));
     if (Math.abs(target - x) < 0.02) x = target;
-    // The probe rides high while the head still has ground to cover, so it
-    // lifts off one socket and drops onto the next.
+    // The probe rides high while the head still has ground to cover, so it lifts
+    // off one socket and drops onto the next.
     const under = nearest(x);
-    const want = under.top + SAFE_LIFT * Math.min(1, Math.abs(target - x) / (REACH[1] - REACH[0]) * (ROWS.length - 1) / 0.3);
+    const want = under.top + SAFE_LIFT * Math.min(1, (Math.abs(target - x) / (REACH[1] - REACH[0])) * ((ROWS.length - 1) / 0.3));
     const stiff = 460, drag = calm ? 2 * Math.sqrt(460) : 27;
-    for (let i = 0; i < 4; i++) { rate += ((want - probeZ) * stiff - rate * drag) * dt / 4; probeZ += rate * dt / 4; }
+    for (let i = 0; i < 4; i++) { rate += ((want - probeZ) * stiff - rate * drag) * (dt / 4); probeZ += rate * (dt / 4); }
     if (Math.abs(want - probeZ) < 0.004 && Math.abs(rate) < 0.004) { probeZ = want; rate = 0; }
     draw();
     const settled = !touring && x === target && rate === 0 && probeZ === want;
@@ -773,14 +762,12 @@ function mount(root) {
   }, { rootMargin: "120px 0px" }).observe(stage);
 
   if (still.matches) touring = false;
-
   stage.addEventListener("pointermove", (event) => {
     const box = svg.getBoundingClientRect();
     const fx = (event.clientX - box.left) / box.width;
     // Snap to the socket the pointer is nearest, so the head settles on a
     // listener rather than stopping between two.
-    const at = rowAtScreen(clamp(fx, ROWS[0].fx, ROWS[ROWS.length - 1].fx));
-    steer(ROWS[at].x);
+    steer(ROWS[rowAtScreen(clamp(fx, ROWS[0].fx, ROWS[ROWS.length - 1].fx))].x);
   });
   stage.addEventListener("pointerleave", () => steer(target));
   stage.addEventListener("keydown", (event) => {
@@ -797,4 +784,201 @@ function mount(root) {
   draw();
 }
 
-mount(document);
+mount(document.querySelector('[data-figure="indexer"]'));
+})();
+(function(){
+
+const BLOCKS = [{"process":"node.exe","folder":"portfolio","port":3000,"at":0},{"process":"node.exe","folder":"waku","port":5173,"at":-52}];
+const P = {"origin":[275.23603044901995,279.34008188911264],"scale":0.9380950408897217,"azimuth":42,"elevation":30};
+const HOME = 0, LIFT = 16, BASE = 0;
+const TRAVEL = [0,-52];
+const STOPS = TRAVEL;
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+
+function mount(root) {
+  const stage = root.querySelector(".iso-stage") || root;
+  const svg = stage.querySelector("svg");
+  const carriage = svg.querySelector('[data-part="carriage"]');
+  const feeler = svg.querySelector('[data-part="feeler"]');
+  // This figure's own readout: three figures share one page, and the first one in
+  // the document is not necessarily this one.
+  const readout = (stage.closest(".iso-figure") || document).querySelector("[data-readout]");
+  const status = stage.querySelector("[data-status]");
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  let y = STOPS[HOME], target = y, lift = 0, rate = 0;
+  let frame = 0, last = 0, clock = 0, touring = true, visible = false, idleTimer = 0;
+
+  const nearest = (value) => STOPS.reduce((best, stop, index) => (Math.abs(stop - value) < Math.abs(STOPS[best] - value) ? index : best), 0);
+
+  function draw() {
+    carriage.setAttribute("transform", translateAlong(P, [0, y, 0]));
+    feeler.setAttribute("transform", translateAlong(P, [0, 0, lift]));
+    holdStill(feeler, axisVector(P, [0, 0, lift]));
+    const index = nearest(y);
+    const block = BLOCKS[index];
+    const text = block.process + " \u00b7 " + block.folder + " \u00b7 port " + block.port;
+    if (readout.textContent !== text) readout.textContent = text;
+    const said = "Block " + (index + 1) + " of " + BLOCKS.length + ": " + block.process + ", serving " + block.folder + ", on port " + block.port;
+    if (status.textContent !== said) status.textContent = said;
+  }
+
+  function tick(now) {
+    const dt = last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60;
+    last = now;
+    const calm = still.matches;
+    if (touring) {
+      clock += dt;
+      target = STOPS[Math.floor(clock / 2.6) % STOPS.length];
+    }
+    y = calm ? target : y + (target - y) * (1 - Math.exp(-dt / 0.24));
+    if (Math.abs(target - y) < 0.02) y = target;
+    // The feeler lifts while the work is still moving, so it never drags across a
+    // block face; it settles back onto the field once the shuttle has arrived.
+    const want = LIFT * Math.min(1, Math.abs(target - y) / 8);
+    const stiff = 420, drag = calm ? 2 * Math.sqrt(420) : 24;
+    for (let i = 0; i < 4; i++) { rate += ((want - lift) * stiff - rate * drag) * (dt / 4); lift += rate * (dt / 4); }
+    if (Math.abs(want - lift) < 0.004 && Math.abs(rate) < 0.004) { lift = want; rate = 0; }
+    draw();
+    const settled = !touring && y === target && rate === 0 && lift === want;
+    frame = visible && !settled ? requestAnimationFrame(tick) : 0;
+  }
+
+  const run = () => { if (!frame && visible) { last = 0; frame = requestAnimationFrame(tick); } };
+  const steer = (index) => {
+    touring = false;
+    target = clamp(STOPS[clamp(index, 0, STOPS.length - 1)], Math.min(...STOPS), Math.max(...STOPS));
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => { touring = !still.matches; clock = 0; run(); }, 3600);
+    run();
+  };
+
+  new IntersectionObserver((entries) => {
+    visible = entries[entries.length - 1].isIntersecting;
+    if (visible) run();
+  }, { rootMargin: "120px 0px" }).observe(stage);
+
+  if (still.matches) touring = false;
+  stage.addEventListener("pointermove", (event) => {
+    const box = svg.getBoundingClientRect();
+    const share = clamp((event.clientY - box.top) / box.height, 0, 1);
+    steer(share < 0.5 ? 0 : 1);
+  });
+  stage.addEventListener("pointerleave", () => steer(nearest(target)));
+  stage.addEventListener("keydown", (event) => {
+    const here = nearest(target);
+    let to = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") to = Math.min(STOPS.length - 1, here + 1);
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") to = Math.max(0, here - 1);
+    if (event.key === "Home") to = 0;
+    if (event.key === "End") to = STOPS.length - 1;
+    if (to === null) return;
+    event.preventDefault();
+    steer(to);
+  });
+  draw();
+}
+
+mount(document.querySelector('[data-figure="readstation"]'));
+})();
+(function(){
+
+const P = {"origin":[277.94858487061947,214.51671042106105],"scale":1.2118606169190225,"azimuth":42,"elevation":30};
+const KEY = [88,0];
+const KEY_R = 13, KEY_TOP = 47, TURN = 1.5707963267948966;
+const BOLT_TRAVEL = 22, TRIP = 30;
+const pointerAt = (turn) => {
+  const [x, y] = KEY;
+  return lineOnTop([x + Math.sin(turn) * 2, y - Math.cos(turn) * 2], [x + Math.sin(turn) * (KEY_R - 3), y - Math.cos(turn) * (KEY_R - 3)], KEY_TOP + 0.3, P);
+};
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+
+function mount(root) {
+  const stage = root.querySelector(".iso-stage") || root;
+  const svg = stage.querySelector("svg");
+  const bolt = svg.querySelector('[data-part="bolt"]');
+  const lever = svg.querySelector('[data-part="lever"]');
+  const pointer = svg.querySelector('[data-part="pointer"]');
+  // This figure's own readout: three figures share one page, and the first one in
+  // the document is not necessarily this one.
+  const readout = (stage.closest(".iso-figure") || document).querySelector("[data-readout]");
+  const status = stage.querySelector("[data-status]");
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  let phase = 0, turn = 0, trip = 0, turnRate = 0, tripRate = 0;
+  let frame = 0, last = 0, clock = 0, touring = true, visible = false, idleTimer = 0;
+
+  // Three phases: holding, keyed with the bolt clear, tripped. The bolt leads the
+  // lever by a wide stagger, so the lever can never move while it is held.
+  const shares = (want) => ({ unlock: clamp(want, 0, 1), trip: clamp(want - 1, 0, 1) });
+
+  function draw() {
+    const want = shares(phase);
+    bolt.setAttribute("transform", translateAlong(P, [BOLT_TRAVEL * want.unlock, 0, 0]));
+    holdStill(bolt, axisVector(P, [BOLT_TRAVEL * want.unlock, 0, 0]));
+    lever.setAttribute("transform", translateAlong(P, [-TRIP * want.trip, 0, 0]));
+    pointer.setAttribute("d", pointerAt(turn));
+    const text = want.trip > 0.5 ? "tripped \u00b7 lever released" : want.unlock > 0.5 ? "keyed \u00b7 bolt clear" : "keyed \u00b7 bolt in the eye \u00b7 holding";
+    if (readout.textContent !== text) readout.textContent = text;
+    const said = want.trip > 0.5 ? "Tripped: the lever has released the process" : want.unlock > 0.5 ? "Keyed: the bolt has cleared the eye" : "Holding: the bolt is in the eye";
+    if (status.textContent !== said) status.textContent = said;
+  }
+
+  function tick(now) {
+    const dt = last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60;
+    last = now;
+    const calm = still.matches;
+    if (touring) {
+      clock += dt;
+      const at = clock % 7.2;
+      phase = at < 2.4 ? 0 : at < 5 ? 1 : 2;
+    }
+    const want = shares(phase);
+    const step = (value, goal, rate) => {
+      if (calm) return [goal, 0];
+      const stiff = 180, drag = 2 * Math.sqrt(180);
+      for (let i = 0; i < 4; i++) { rate += ((goal - value) * stiff - rate * drag) * (dt / 4); value += rate * (dt / 4); }
+      if (Math.abs(goal - value) < 0.003 && Math.abs(rate) < 0.003) return [goal, 0];
+      return [value, rate];
+    };
+    [turn, turnRate] = step(turn, want.unlock * TURN, turnRate);
+    [trip, tripRate] = step(trip, want.trip * -TRIP, tripRate);
+    draw();
+    const settled = !touring && Math.abs(turn - want.unlock * TURN) < 1e-6 && Math.abs(trip - want.trip * -TRIP) < 1e-6;
+    frame = visible && !settled ? requestAnimationFrame(tick) : 0;
+  }
+
+  const run = () => { if (!frame && visible) { last = 0; frame = requestAnimationFrame(tick); } };
+  const steer = (next) => {
+    touring = false;
+    phase = clamp(next, 0, 2);
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => { touring = !still.matches; clock = 0; run(); }, 3600);
+    run();
+  };
+
+  new IntersectionObserver((entries) => {
+    visible = entries[entries.length - 1].isIntersecting;
+    if (visible) run();
+  }, { rootMargin: "120px 0px" }).observe(stage);
+
+  if (still.matches) touring = false;
+  stage.addEventListener("pointermove", (event) => {
+    const box = svg.getBoundingClientRect();
+    steer(clamp((event.clientX - box.left) / box.width, 0, 1) * 2);
+  });
+  stage.addEventListener("pointerleave", () => steer(phase));
+  stage.addEventListener("keydown", (event) => {
+    let to = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") to = Math.min(2, Math.round(phase) + 1);
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") to = Math.max(0, Math.round(phase) - 1);
+    if (event.key === "Home") to = 0;
+    if (event.key === "End") to = 2;
+    if (event.key === " " || event.key === "Enter") to = Math.round(phase) >= 2 ? 0 : Math.round(phase) + 1;
+    if (to === null) return;
+    event.preventDefault();
+    steer(to);
+  });
+  draw();
+}
+
+mount(document.querySelector('[data-figure="interlock"]'));
+})();

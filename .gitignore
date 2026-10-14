@@ -8,5 +8,14 @@ mygo_windows_*.syso
 /out.txt
 /err.txt
 
+# Landing-page review output, and local verification captures
+/landing/anatomy/review/
+/.livecheck/
+
+# Working artifacts for a task, not part of the project
+/implementation_plan.md
+/task.md
+/walkthrough.md
+
 # Hallmark design-skill log (local to the machine)
 /.hallmark/

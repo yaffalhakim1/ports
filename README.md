@@ -59,20 +59,30 @@ go test ./...           # the tests
 
 ## Landing page
 
-`landing/` is the site GitHub Pages publishes. Its figure — a bench indexer that
-stands one socket per listening port, as tall as the port's number — is built
-from the app's own model by the kit in `landing/anatomy/`.
+`landing/` is the site GitHub Pages publishes. Its three figures are built from
+the app's own model by the kit in `landing/anatomy/`:
+
+- **Fig 1 · port indexer** — one socket per listening port, as tall as the port's
+  number, with wide collars on the ports another machine can reach. A gantry head
+  sweeps the row and a spring probe reads each socket.
+- **Fig 2 · parameter read station** — two `node.exe` blocks ride a shuttle and a
+  fixed feeler reads the folder engraved on whichever one is presented under it.
+  That is the "the folder, not just the port" story.
+- **Fig 3 · restart interlock** — a keyed bolt in the trip lever's fork. The key
+  must be turned before the lever can travel, and the lock body reads the command
+  line first.
 
 ```sh
 cd landing/anatomy
-node build.mjs --audit   # rebuild index.html and prove the figure's geometry
-node build.mjs --light   # the light-theme build of the figure on its own
+node build.mjs           # rebuild index.html, figure.css and figure.js
+node build.mjs --audit   # prove every figure's geometry; exits non-zero on any fault
+node build.mjs --fig 2   # one figure on its own page, in review/ (gitignored)
 ```
 
-`build.mjs` writes `landing/index.html` (from `landing/page.template.html`),
-`anatomy/figure.css` and `anatomy/figure.js`. Editing the drawing means editing
-`build.mjs`, never `index.html`. The audit must end `audit passed`; the line
-check (`node scripts/lines.mjs ../index.html`) must report `0 of … ends … float`.
+`build.mjs` writes `landing/index.html` from `anatomy/page.template.html`, plus
+`anatomy/figure.css` and `anatomy/figure.js`. Editing a drawing means editing
+`figure-*.mjs`, never `index.html`. The audit must end `audit passed`; the line
+check (`node scripts/lines.mjs ../index.html`) must report `line ends: 0`.
 Needs Node 20.10+ and Chrome for the checks.
 
 ## How it works

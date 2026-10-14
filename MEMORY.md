@@ -215,3 +215,96 @@ ports release flow: `git tag vX.Y.Z && git push origin vX.Y.Z` triggers .github/
 mygo release gotcha: both Windows architectures build an installer with the same basename ("ports Setup X.Y.Z.exe"), and a GitHub release cannot hold two same-named assets — so build signed WITHOUT -upload and upload per-arch-renamed installers; the .tar.gz and update-*.json names must stay as built because the manifests reference them.
 
 ## ports landing page: Hallmark-built static page in landing/ (index.html, tokens.css, assets/, favicon.png), published by .github/workflows/pages.yml to https://yaffalhakim1.github.io/ports/ on changes under landing/. Apple-design pass applied (translucent sticky nav, press feedback, reduced-motion/transparency fallbacks).
+
+## omp skill registry root: omp indexes `~/.agents/skills`, NOT `~/.omp/skills`; sk
+omp skill registry root: omp indexes `~/.agents/skills`, NOT `~/.omp/skills`; skills present only under `~/.omp/skills/` are invisible to `skill://` and absent from the available-skills list.
+
+## anatomy skill location: full skill on disk at `C:/Users/yafit/.omp/skills/anatom
+anatomy skill location: full skill on disk at `C:/Users/yafit/.omp/skills/anatomy/` (13 MB; SKILL.md, kit/, references/, scripts/, examples/, evals/, agents/openai.yaml, tests/), byte-identical duplicate at `~/.claude/skills/anatomy`; frontmatter valid (`name: anatomy`, description 971 chars < 1024 cap) but unloadable due to registry root mismatch.
+
+## anatomy skill purpose: builds crafted isometric SVG/WebGL figures explaining ide
+anatomy skill purpose: builds crafted isometric SVG/WebGL figures explaining ideas as physical machines — four-tone shaded solids, painter's order, framed card with live readout; kit/ drawing library (`iso-kit`, `lathe.mjs`, `tube.mjs`, `gl.mjs`, `turn.mjs`); verification via `node build.mjs --audit` geometry proof, `scripts/lines.mjs` line-end check, `scripts/capture.mjs`/`drive.mjs` headless-Chrome screenshots.
+
+## anatomy skill requirements: Node >= 20.10, zero deps, Chrome required for checks
+anatomy skill requirements: Node >= 20.10, zero deps, Chrome required for checks. Local env satisfies this — Node v22.23.2, Chrome at `C:/Program Files/Google/Chrome/Application/chrome.exe`.
+
+## anatomy fix option: to make loadable, symlink/junction or copy `anatomy` into `~
+anatomy fix option: to make loadable, symlink/junction or copy `anatomy` into `~/.agents/skills/anatomy` (13 MB duplicate), or add `~/.omp/skills` to omp's skill roots if supported.
+
+## skill list anomaly: available list vs `~/.agents/skills` contents match exactly 
+skill list anomaly: available list vs `~/.agents/skills` contents match exactly except `mygo-maintenance` (project-local) and a stray `scripts/` dir.
+
+## omp skill registry ignores junctions: a skill junctioned/symlinked into the skil
+omp skill registry ignores junctions: a skill junctioned/symlinked into the skills dir is NOT registered; read its instruction + kit files directly from disk.
+
+## ports app surfaces: rescans listening ports every 2 s; `0.0.0.0` binds denote th
+ports app surfaces: rescans listening ports every 2 s; `0.0.0.0` binds denote the "exposed" state; resolved-folder list is the other main view.
+
+## landing-page concept chosen: "bench-top socket analyser" 3D figure — index head 
+landing-page concept chosen: "bench-top socket analyser" 3D figure — index head traverses a row of port sockets, spring probe drops into occupied sockets, odometer counts, marks paper tape.
+
+## 3D kit gotcha: a rod inside a bore trips `solidClearances` as a sunk pair; make 
+3D kit gotcha: a rod inside a bore trips `solidClearances` as a sunk pair; make the probe a `ringBand` bore so the rod isn't flagged.
+
+## 3D kit recipe: sockets are pucks the probe rests on (dial-indicator contact reci
+3D kit recipe: sockets are pucks the probe rests on (dial-indicator contact recipe, passes audit); probe is a `rodOut` plunger retracting into the head.
+
+## 3D kit gotcha: gantry posts can intersect nearby parts (e.g. dial puck at ~4.8 d
+3D kit gotcha: gantry posts can intersect nearby parts (e.g. dial puck at ~4.8 depth), triggering depth-cycle audit failures; move posts inboard, dials outboard.
+
+## Kit verification: build must reach audit (`solidClearances`) zero and line-check
+Kit verification: build must reach audit (`solidClearances`) zero and line-check zero before render is accepted.
+
+## Deployment target: GitHub Pages at https://yaffalhakim1.github.io/ports, publish
+Deployment target: GitHub Pages at https://yaffalhakim1.github.io/ports, publishing the `landing/` directory via `.github/workflows/pages.yml` (upload-pages-artifact path: landing → deploy-pages).
+
+## Deploy trigger gotcha: the Pages workflow only fires on push to `main` that touc
+Deploy trigger gotcha: the Pages workflow only fires on push to `main` that touches `landing/**` (or manual `workflow_dispatch`); changes to `README.md` or `MEMORY.md` alone will not deploy.
+
+## Commit policy: do not `git add`/`commit`/`push` without the user explicitly aski
+Commit policy: do not `git add`/`commit`/`push` without the user explicitly asking; when asked, propose the commit contents first.
+
+## Repo layout: static landing site lives in `landing/` (with `landing/index.html`,
+Repo layout: static landing site lives in `landing/` (with `landing/index.html`, `landing/anatomy/`), alongside `README.md` and `MEMORY.md` at the project root.
+
+## Repo/deploy: `yaffalhakim1/ports` (Go) auto-deploys GitHub Pages from `main`; li
+Repo/deploy: `yaffalhakim1/ports` (Go) auto-deploys GitHub Pages from `main`; live at https://yaffalhakim1.github.io/ports/.
+
+## Vet command: use `go tool mygo vet .` — plain `go vet` is not the project's base
+Vet command: use `go tool mygo vet .` — plain `go vet` is not the project's baseline.
+
+## Windows quirk: `curl -o /dev/null` prints write warnings on this machine; they a
+Windows quirk: `curl -o /dev/null` prints write warnings on this machine; they are not request failures.
+
+## Verification convention: after pushing to `main`, verify against the *deployed* 
+Verification convention: after pushing to `main`, verify against the *deployed* URL, not just green CI — `cmp` live assets against local (byte-identical), drive the live page in Chromium, assert rendered counts and console-clean.
+
+## Lazy-loading gotcha: `loading="lazy"` images report as not-loaded in an initial 
+Lazy-loading gotcha: `loading="lazy"` images report as not-loaded in an initial page check (e.g. `imgsOk:false`); they load on scroll.
+
+## Landing-page figure: implemented in `anatomy/figure.js` + `anatomy/figure.css`, 
+Landing-page figure: implemented in `anatomy/figure.js` + `anatomy/figure.css`, embedded from `index.html`; renders 57 solids / 183 strokes with pointer + keyboard indexing and a live readout.
+
+## landing-page redesign: full industrial/anatomy rebuild in one theme (dark graphite
+landing-page redesign: full industrial/anatomy rebuild in one theme (dark graphite paper `oklch(15% 0.006 275)` + brand green `#26E085` as a signal only). Macrostructure is Map / Diagram — the previous build stamped Workbench, and Hallmark's diversification rule forbids repeating it.
+
+## landing-page figures: three machines, one per idea — Fig 1 port indexer (socket
+landing-page figures: three machines, one per idea — Fig 1 port indexer (socket per listener, post height = port number, wide collar = exposed); Fig 2 parameter read station (two `node.exe` blocks on a shuttle, fixed feeler reads the engraved folder); Fig 3 keyed restart interlock (bolt in the trip lever's fork, key must turn before the lever travels). Built in `landing/anatomy/figure-{indexer,readstation,interlock}.mjs`, assembled by `build.mjs`.
+
+## anatomy build gotcha: the kit's own source contains a literal `</script>` (insid
+anatomy build gotcha: the kit's own source contains a literal `</script>` (inside `pageHtml`), so inlining `kitScript()` into a `<script>` element closes it early and breaks the page. Escape it: `source.replace(/<\/(script)/gi, "<\\/$1")`.
+
+## anatomy multi-figure gotcha: on a page with several figures, each live layer must
+anatomy multi-figure gotcha: on a page with several figures, each live layer must scope its own DOM — `mount(document)` grabs the first stage and the first `[data-readout]`, so the second and third figures crash on null refs and write to the wrong readout. Give each stage a `data-figure` and mount into it.
+
+## anatomy geometry gotchas learned on Fig 3: a bore in the middle of a rod wraps it
+anatomy geometry gotchas learned on Fig 3: a bore in the middle of a rod wraps it and no drawing order can exist (use a cradle, a tangent contact); a closed eye around a rod is a real interlock (cut it open into a fork and split the jaws across the rod in paint order); a disc mounted on a vertical face cannot be ordered against it (put the wheel on a pedestal so it rests on a top face, as the dial does).
+
+## landing-page verification (must stay green): `node build.mjs --audit` prints `audit
+landing-page verification (must stay green): `node build.mjs --audit` prints `audit passed` for all three figures; `node scripts/lines.mjs ../index.html` prints `line ends: 0`; responsive at 320/375/414/768/1024/1440 with no sideways scroll, no overflow, no wrapped buttons, and all three figures at one scale.
+
+## landing-page review output lives in `landing/anatomy/review/` (gitignored); `nod
+landing-page review output lives in `landing/anatomy/review/` (gitignored); `node build.mjs --fig n` writes one figure on its own page there. The old committed `figure.html` / `figure-light.html` review pages are gone, and there is no light theme any more.
+
+## landing page keeps real app captures: `landing/assets/screenshot-dark.png` and `
+landing page keeps real app captures: `landing/assets/screenshot-dark.png` and `-light.png` (copies of `docs/`) plus the empty-search and window-disabled states. Hallmark forbids re-drawn UI chrome, so these are real screenshots in a hairline frame, never fake window bars.

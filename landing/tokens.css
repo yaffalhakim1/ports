@@ -1,86 +1,87 @@
-/* Hallmark tokens · theme: custom (ports brand palette) · axes: light / geometric-sans / chromatic-other (green) */
+/* Ports · tokens · Hallmark · route: custom (tuned) · theme: "graphite instrument"
+ * macrostructure: Map / Diagram · paper: oklch(15% 0.006 275) · accent: oklch(80% 0.190 155) = brand #26E085
+ * display: Geist · body: Geist · mono: Geist Mono · axes: dark / geometric-sans / chromatic-green
+ * One theme, dark only: the instrument read is the point, and it keeps figure verification honest.
+ * Constraints: 8px spacing grid · 24px card padding · 24px corner radius · 2 families · 3 weights.
+ */
 :root {
-  /* Paper — near-white, tinted toward the brand green (hue 158). */
-  --color-paper:          oklch(99%   0.004 158);
-  --color-paper-2:        oklch(96.5% 0.006 158);
-  --color-surface:        oklch(99.7% 0.002 158);
+  /* Plate — deep graphite, tinted toward the brand hue (275). */
+  --color-page:      oklch(15%   0.006 275);
+  --color-plate:     oklch(19.5% 0.008 275);
+  --color-surface:   oklch(23%   0.009 275);
+  --color-raised:    oklch(26%   0.010 275);
 
-  /* Hairlines and greys. */
-  --color-rule:           oklch(91.5% 0.005 158);
-  --color-rule-2:         oklch(94%   0.004 158);
-  --color-neutral:        oklch(70%   0.006 158);
+  /* Hairlines and greys — every one tinted, never zero-chroma. */
+  --color-rule:      oklch(31%   0.010 275);
+  --color-rule-2:    oklch(26%   0.009 275);
+  --color-neutral:   oklch(48%   0.010 275);
 
-  /* Translucent material for floating chrome (alpha is a modifier, not a colour). */
-  --color-nav-bg:         oklch(99%   0.004 158 / 0.72);
-  --color-nav-fade:       oklch(99%   0.004 158 / 0.85);
-  --color-nav-edge:       oklch(99%   0.004 158 / 0.55);
+  /* Ink ramp. */
+  --color-ink:       oklch(93%   0.006 275);
+  --color-ink-2:     oklch(78%   0.008 275);
+  --color-muted:     oklch(62%   0.010 275);
+  --color-dim:       oklch(46%   0.010 275);
 
-  /* Ink. */
-  --color-ink:            oklch(24%   0.010 158);
-  --color-ink-hover:      oklch(18%   0.012 158);
-  --color-ink-2:          oklch(36%   0.008 158);
-  --color-muted:          oklch(46%   0.010 158);
+  /* The brand green, as a signal. Kept to a small footprint. */
+  --color-accent:        oklch(80%   0.190 155);
+  --color-accent-strong: oklch(86%   0.160 155);
+  --color-accent-deep:   oklch(58%   0.140 155);
+  --color-accent-ink:    oklch(18%   0.020 275);
+  --color-accent-wash:   oklch(80%   0.190 155 / 0.10);
+  --color-focus:         oklch(84%   0.150 155);
 
-  /* The brand green, as accent. Kept to a signal footprint. */
-  --color-accent:         oklch(80%   0.180 158);
-  --color-accent-strong:  oklch(44%   0.120 158);
-  --color-accent-ink:     oklch(21%   0.010 158);
-  --color-focus:          oklch(46%   0.140 158);
+  /* Translucent material for the sticky nameplate. */
+  --color-nav-bg:    oklch(15% 0.006 275 / 0.78);
+  --color-nav-edge:  oklch(31% 0.010 275 / 0.7);
 
-  /* Faces — one family, plus a mono outlier for figures. */
+  /* Faces — the brand's two families, nothing else. */
   --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-body:    "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-outlier: "Geist Mono", ui-monospace, "SF Mono", monospace;
+  --font-mono:    "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Spacing — 4pt scale, named by role. */
-  --space-3xs: 0.125rem;
-  --space-2xs: 0.25rem;
-  --space-xs:  0.5rem;
-  --space-sm:  0.75rem;
-  --space-md:  1rem;
-  --space-lg:  1.5rem;
-  --space-xl:  2.5rem;
-  --space-2xl: 4rem;
-  --space-3xl: 6rem;
-  --space-4xl: 9rem;
+  /* Spacing — strict 8px grid, named by role. */
+  --space-xs:  0.5rem;    /*   8px */
+  --space-sm:  1rem;      /*  16px */
+  --space-md:  1.5rem;    /*  24px — the container and card padding */
+  --space-lg:  2rem;      /*  32px */
+  --space-xl:  3rem;      /*  48px */
+  --space-2xl: 4.5rem;    /*  72px */
+  --space-3xl: 7rem;      /* 112px */
 
-  /* Type scale — 1.25 major third, from a 16px body. */
-  --text-xs:      0.64rem;
-  --text-sm:      0.8rem;
+  /* Type scale — 1.25 major third from a 16px body. */
+  --text-2xs:     0.6875rem;
+  --text-xs:      0.75rem;
+  --text-sm:      0.8125rem;
   --text-base:    1rem;
   --text-md:      1.25rem;
   --text-lg:      1.5625rem;
   --text-xl:      1.9531rem;
   --text-2xl:     2.4414rem;
   --text-3xl:     3.0518rem;
-  --text-display: clamp(2.5rem, 4.5vw + 1rem, 4.5rem);
+  --text-display: clamp(2.25rem, 1.1rem + 4.2vw, 4.25rem);
 
-  /* Motion. */
-  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Motion — the curves and durations the page is allowed to use. */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --dur-micro: 120ms;
-  --dur-short: 220ms;
+  --dur-short: 200ms;
   --dur-long:  420ms;
 
-  /* Geometry. */
-  --rule-hair:  1px;
-  --radius:     12px;
-  --radius-lg:  18px;
+  /* Geometry — one radius for every rounded surface. */
+  --rule-hair:   1px;
+  --radius:      24px;
   --radius-pill: 999px;
-  --page-gutter: clamp(1.25rem, 5vw, 4rem);
-  --measure:     62ch;
+  --page-gutter: clamp(1.5rem, 5vw, 3.5rem);
+  --measure:     64ch;
 
   /* Depth — one hairline, never stacked shadows. */
-  --shadow-whisper: 0 1px 2px oklch(24% 0.01 158 / 0.05);
+  --shadow-plate: 0 1px 0 0 oklch(0% 0 0 / 0.35), 0 24px 48px -32px oklch(0% 0 0 / 0.7);
 
-  /* Z — six named levels. */
-  --z-base: 1;
-  --z-raised: 10;
-  --z-dropdown: 100;
-  --z-sticky: 200;
+  /* Z — named levels. */
+  --z-base:       1;
+  --z-raised:     10;
   --z-sticky-nav: 300;
-  --z-modal: 400;
-  --z-toast: 500;
-  --z-tooltip: 600;
+  --z-modal:      400;
+  --z-toast:      500;
 }
