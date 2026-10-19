@@ -25,10 +25,53 @@ func TestRender(t *testing.T) {
 // system process chosen, where Stop and Restart are unavailable.
 func TestRenderStates(t *testing.T) {
 	a := newTestApp()
-	a.chosen = 3 // the System row
+	row := -1
+	for i, p := range a.shown {
+		if p.SystemPID() {
+			row = i
+			break
+		}
+	}
+	if row < 0 {
+		t.Fatal("the fixture has no system process to render")
+	}
+	a.chosen = row
 	tt := ui.NewTester(a.view, 900, 620)
 	tt.Frame()
 	writePNG(t, "../../testdata/window-disabled.png", tt.Image())
+}
+
+// TestRenderLive writes the window at the size it opens at, which is the
+// capture the README and the landing page show.
+func TestRenderLive(t *testing.T) {
+	a := newTestApp()
+	a.chosen = 1
+	a.status = "Copied http://127.0.0.1:3000"
+	tt := ui.NewTester(a.view, defaultWidth, defaultHeight)
+	tt.Frame()
+	writePNG(t, "../../testdata/live.png", tt.Image())
+}
+
+// TestRenderDialogs writes the two surfaces that are only on screen while
+// something is being decided: the confirmation before a process is ended,
+// and the command palette. Both are the library's dialogs wearing the app's
+// theme, so they are worth looking at as a whole rather than one control at
+// a time.
+func TestRenderDialogs(t *testing.T) {
+	a := newTestApp()
+	a.chosen = 1
+	a.ask("Stop", a.shown[1])
+	tt := ui.NewTester(a.view, 900, 620)
+	tt.Frame()
+	tt.Frame()
+	writePNG(t, "../../testdata/confirm.png", tt.Image())
+
+	b := newTestApp()
+	b.paletteOpen = true
+	tt2 := ui.NewTester(b.view, 900, 620)
+	tt2.Frame()
+	tt2.Frame()
+	writePNG(t, "../../testdata/palette.png", tt2.Image())
 }
 
 func renderDark(a *App) *image.RGBA {

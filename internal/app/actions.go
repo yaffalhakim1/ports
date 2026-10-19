@@ -7,6 +7,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/oneo-me/onevra/source/components"
 
 	"ports/internal/host"
 	"ports/internal/port"
@@ -23,35 +24,10 @@ func (a *App) ask(verb string, p port.Port) {
 	}
 }
 
-// confirm shows the pending action, if any, and runs it when the user
-// agrees. The alert names the process, because a port number alone does
-// not say what is about to end.
-func (a *App) confirm(c *ui.Context) {
-	if a.pending == nil {
-		return
-	}
-	open := true
-	message := a.pending.detail
-	if a.pending.verb == "Restart" {
-		message += "\nIt is started again with the same command, in the same folder."
-	} else {
-		message += "\nAnything it is serving stops."
-	}
-
-	switch ui.AlertDialog(c, &open, a.pending.verb+" "+a.pending.port.Name+"?", message,
-		"Cancel", a.pending.verb) {
-	case 1:
-		action := *a.pending
-		a.pending = nil
-		a.run(action)
-	case 0:
-		a.pending = nil
-		a.status = ""
-	}
-}
-
 // run carries out a confirmed action off the main thread, then re-scans so
-// the list reflects what happened.
+// the list reflects what happened. What it reports is queued as a toast as
+// well as written to the status line: the eye is usually on the row that was
+// acted on, not on the bar under it.
 func (a *App) run(action pendingAction) {
 	p := action.port
 	go func() {
@@ -65,8 +41,10 @@ func (a *App) run(action pendingAction) {
 		a.win.Update(func() {
 			if err != nil {
 				a.status = failed(action.verb, p, err)
+				a.say(action.verb+" failed", a.status, components.ToastError)
 			} else {
 				a.status = done(action.verb, p)
+				a.say(a.status, p.Label(), components.ToastSuccess)
 			}
 		})
 		// Let the system settle before reading it again, so the list does
@@ -83,12 +61,14 @@ func (a *App) open(c *ui.Context, p port.Port) {
 	c.OpenURL(u)
 }
 
-// copy puts a port's address on the clipboard.
+// copy puts a port's address on the clipboard. The toast is the visible
+// confirmation: the clipboard gives no feedback of its own.
 func (a *App) copy(c *ui.Context, p port.Port) {
 	u := p.URL()
 	c.WriteClipboard(u)
 	c.Announce("Copied " + u)
 	a.status = "Copied " + u
+	a.say("Copied", u, components.ToastSuccess)
 }
 
 var _ = mygo.Shell // the shell module opens URLs; kept for the dependency note

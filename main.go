@@ -5,7 +5,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/plugins/updater/native"
-	"github.com/egoist/mygo/ui"
+	"github.com/oneo-me/onevra/source/shells/sidebar"
 
 	"ports/internal/app"
 )
@@ -19,17 +19,11 @@ func main() {
 	a := app.New(app.ParseAppearance(s.Appearance))
 
 	mygo.App.WhenReady(func() {
-		win := mygo.NewWindow(mygo.WindowOptions{
-			Title:     "Ports",
-			Width:     960,
-			Height:    660,
-			MinWidth:  620,
-			MinHeight: 420,
-			// Opens where the user left it last time.
-			StateKey: "main",
-			Content:  ui.View(a.View),
-		})
-		a.SetWindow(win)
+		// The shell owns the window: its titlebar, its window controls and
+		// its sidebar. The app owns what goes in them.
+		shell := sidebar.NewShell(a.ShellOptions())
+		a.SetShell(shell)
+		a.SetWindow(shell.Window())
 		a.StartTray()
 		a.WatchClose()
 		a.Start()

@@ -23,14 +23,23 @@ import "github.com/egoist/mygo/ui"
 // makes the green the one accent, and no text colour reaches 4.5:1 on
 // every accent a desktop can supply, so following it would mean shipping
 // an unreadable chosen row on some machines.
+//
+// The theme starts from MyGo's own, so every metric it does not name
+// (the spacing unit, the font size, the scrollbar width) keeps MyGo's
+// value, and only the colours are the brand's. Colour is all this app
+// overrides; a zero Theme would leave the spacing unit at zero and every
+// control sized from it would collapse.
 func theme(dark bool) *ui.Theme {
-	t := &ui.Theme{Dark: dark}
+	t := ui.LightTheme()
+	if dark {
+		t = ui.DarkTheme()
+	}
 	if dark {
 		t.Background = darkCanvas
 		t.Surface = darkRaised
 		t.SurfaceHover = darkComposer
 		t.SurfacePressed = darkInset
-		t.Border = darkBorder
+		t.Border = controlBorder(true)
 		t.Text = darkText
 		t.TextMuted = darkTextSecondary
 		t.Selection = brandGreen.Alpha(0.30)
@@ -50,7 +59,7 @@ func theme(dark bool) *ui.Theme {
 		t.Surface = lightComposer
 		t.SurfaceHover = lightRaised
 		t.SurfacePressed = lightInset
-		t.Border = lightBorder
+		t.Border = controlBorder(false)
 		t.Text = lightText
 		t.TextMuted = lightTextSecondary
 		t.Selection = brandGreenLight.Alpha(0.30)
@@ -69,6 +78,8 @@ func theme(dark bool) *ui.Theme {
 	// The brand green is bright in both appearances, so the text on it is
 	// the brand's near-black in both: white on it measures under 2:1.
 	t.AccentText = onBrandGreen
+	// A step of the eight-pixel grid the rest of the window is laid out on,
+	// rather than MyGo's own six, which is not on it.
 	t.Radius = 8
 	return t
 }
@@ -76,8 +87,12 @@ func theme(dark bool) *ui.Theme {
 // controlBorder is the stroke around a control, which is stronger than a
 // divider: a control has to read as a control, while a divider only has to
 // separate. The brand system draws hairlines rather than shadows, so this
-// stroke is the only thing that makes a button distinct from the surface
+// stroke is the only thing that makes a control distinct from the surface
 // behind it.
+//
+// It is what the theme's own Border is set to, because every Onevra control
+// takes its stroke from there. The dividers this app draws for itself use the
+// same value, which keeps the two in one system rather than two greys apart.
 func controlBorder(dark bool) ui.Color {
 	if dark {
 		return darkBorderStrong

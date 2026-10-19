@@ -1,5 +1,7 @@
 package app
 
+import "github.com/egoist/mygo"
+
 // Appearance is which of the two looks the app is showing. The desktop's
 // own setting is the third choice, and the default: the app follows the
 // system until the user says otherwise.
@@ -28,6 +30,20 @@ func (a Appearance) String() string {
 // than "Follow the desktop": it is what the setting is called everywhere
 // else, and the label has to fit beside an icon.
 func (a Appearance) MenuLabel() string { return a.String() }
+
+// Source is the choice as MyGo's theme source, which the native chrome —
+// menus, tooltips, the platforms' own controls — follows. The app draws its
+// own surfaces from the same choice through theme.
+func (a Appearance) Source() mygo.ThemeSource {
+	switch a {
+	case AppearanceLight:
+		return mygo.ThemeLight
+	case AppearanceDark:
+		return mygo.ThemeDark
+	default:
+		return mygo.ThemeSystem
+	}
+}
 
 // ParseAppearance reads a stored appearance, falling back to following the
 // system for anything unrecognised.

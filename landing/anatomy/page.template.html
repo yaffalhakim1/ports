@@ -7,7 +7,7 @@
 <title>Ports — see what is listening, and which project owns it</title>
 <meta name="description" content="A native Windows app that lists every listening TCP port with the process that owns it, its PID, and the folder it was started in.">
 <meta property="og:title" content="Ports — see what is listening, and which project owns it">
-<meta property="og:description" content="Every listening TCP port, the process behind it, and the folder it serves. One 11 MB binary, no runtime.">
+<meta property="og:description" content="Every listening TCP port, the process behind it, and the folder it serves. One 14 MB binary, no runtime.">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -351,7 +351,7 @@ code { font-family: var(--font-mono); font-size: 0.92em; }
 <main id="top">
 
   <section class="sheet hero" aria-labelledby="hero-title">
-    <p class="hero__crop reveal" style="--i:0">Windows · amd64 + arm64 · 11 MB · MIT</p>
+    <p class="hero__crop reveal" style="--i:0">Windows · amd64 + arm64 · 14 MB · MIT</p>
     <h1 class="hero__title reveal" id="hero-title" style="--i:1">See what is listening, and which project owns it.</h1>
     <div class="hero__grid">
       <p class="hero__lede reveal" style="--i:2">
@@ -403,22 +403,22 @@ code { font-family: var(--font-mono); font-size: 0.92em; }
     <div class="band__head">
       <span class="band__crop reveal" style="--i:0">Plate 1 · the app itself</span>
       <h2 class="band__title reveal" id="app-title" style="--i:1">Every column, and the one that matters.</h2>
-      <p class="band__sub reveal" style="--i:2">Port, process, folder, bind address, PID — sortable, searchable, and live. The folder column is the one that tells two servers of the same program apart.</p>
+      <p class="band__sub reveal" style="--i:2">Port, process, bind address, PID, folder — sortable, searchable, and live. Each row says whether the port is exposed or local, and the folder column is the one that tells two servers of the same program apart.</p>
     </div>
     <div class="states">
       <figure class="reveal" style="--i:3">
         <div class="shot">
           <img src="assets/screenshot-dark.png" width="960" height="660"
-               alt="Ports in its dark theme: a table of listening TCP ports with the port number, process name, project folder, bind address and PID, and Open, Copy, Restart and Stop actions for the selected row.">
+               alt="Ports in its dark theme: a sidebar of views and folders beside a table of listening TCP ports showing the port number, whether it is exposed or local, the process name, the bind address, the PID and the project folder, with Open, Copy, Restart and Stop actions for the selected row.">
         </div>
-        <figcaption class="shot__cap">Dark. Every listening port, the process behind it, and the folder it serves.</figcaption>
+        <figcaption class="shot__cap">Dark. Every listening port, whether it is exposed, the process behind it, and the folder it serves.</figcaption>
       </figure>
       <figure class="reveal" style="--i:4">
         <div class="shot">
           <img src="assets/screenshot-light.png" width="960" height="660" loading="lazy"
-               alt="The same table in the light theme, showing the sort indicator on the Port column and the Exposed-only filter beside the search field.">
+               alt="The same window in the light theme: the sidebar's All ports, Exposed only and Local only views with their counts and the folder list, beside the same table.">
         </div>
-        <figcaption class="shot__cap">Light. Search across every column; filter to the ports another machine can reach.</figcaption>
+        <figcaption class="shot__cap">Light. Search across every column; narrow the list from the sidebar by what another machine can reach, what only this one can, or the folder a process runs in.</figcaption>
       </figure>
     </div>
   </section>
@@ -430,11 +430,11 @@ code { font-family: var(--font-mono); font-size: 0.92em; }
     </div>
     <div class="spec">
       <div class="spec__row reveal" style="--i:0"><span class="spec__key">Platform</span><span class="spec__val">Windows 10 or later, 64-bit (amd64 and arm64)</span></div>
-      <div class="spec__row reveal" style="--i:1"><span class="spec__key">Runtime</span><span class="spec__val">None — a single 11&nbsp;MB binary. No webview, no cgo, no Node.</span></div>
-      <div class="spec__row reveal" style="--i:2"><span class="spec__key">Stack</span><span class="spec__val">Go with <a href="https://github.com/egoist/mygo">MyGo</a>, drawn on the GPU</span></div>
+      <div class="spec__row reveal" style="--i:1"><span class="spec__key">Runtime</span><span class="spec__val">None — a single 14&nbsp;MB binary. No webview, no cgo, no Node.</span></div>
+      <div class="spec__row reveal" style="--i:2"><span class="spec__key">Stack</span><span class="spec__val">Go with <a href="https://github.com/egoist/mygo">MyGo</a> and <a href="https://github.com/oneo-me/onevra">Onevra</a>, drawn on the GPU</span></div>
       <div class="spec__row reveal" style="--i:3"><span class="spec__key">Scan</span><span class="spec__val">Every 2 seconds, on a background thread</span></div>
       <div class="spec__row reveal" style="--i:4"><span class="spec__key">Protocols</span><span class="spec__val">IPv4 and IPv6, TCP</span></div>
-      <div class="spec__row reveal" style="--i:5"><span class="spec__key">Filters</span><span class="spec__val">Search across every column; an Exposed-only view of the ports another machine can reach</span></div>
+      <div class="spec__row reveal" style="--i:5"><span class="spec__key">Filters</span><span class="spec__val">Search across every column; an All / Exposed only / Local only view and one entry per project folder, in the sidebar</span></div>
       <div class="spec__row reveal" style="--i:6"><span class="spec__key">Install</span><span class="spec__val">Per user, no administrator prompt</span></div>
       <div class="spec__row reveal" style="--i:7"><span class="spec__key">Licence</span><span class="spec__val">MIT</span></div>
     </div>

@@ -308,3 +308,33 @@ landing-page review output lives in `landing/anatomy/review/` (gitignored); `nod
 
 ## landing page keeps real app captures: `landing/assets/screenshot-dark.png` and `
 landing page keeps real app captures: `landing/assets/screenshot-dark.png` and `-light.png` (copies of `docs/`) plus the empty-search and window-disabled states. Hallmark forbids re-drawn UI chrome, so these are real screenshots in a hairline frame, never fake window bars.
+
+## UI stack: the window is `github.com/oneo-me/onevra` (sidebar shell + components) on
+UI stack: the window is `github.com/oneo-me/onevra` (sidebar shell + components) on top of mygo v0.5.5 — `sidebar.NewShell(a.ShellOptions())` in `main.go`, regions `ContentTitle`/`Left`/`Content` in `view_shell.go`, icons from `icons/lucide`. The hand-rolled `internal/app/icons.go` and `view_header.go` are gone.
+
+## Shell Theme hook is the frame root: `ShellOptions.Theme = a.beginFrame` is called at
+Shell Theme hook is the frame root: `ShellOptions.Theme = a.beginFrame` is called at the top of the shell's `view`, before any widget, so that is where the app installs the brand theme *and* declares the window's keys (`R`, `F`, `Ctrl+K`). A key declared deeper in a region only reaches that region and lands a frame late — the first press of `F` looked like it did nothing.
+
+## Onevra cells see the wrong theme: the virtualized table builds its cells in a later
+Onevra cells see the wrong theme: the virtualized table builds its cells in a later pass than the rest of the window, where `c.Theme()` is the library's default (light) — a cell that asked the context painted white-on-white pills and dim grey folder text into a dark window. Cells use `a.themeOf()`, the theme `beginFrame` resolved and kept on the App.
+
+## Label trap: `components.Button(c, label, variant)` sets the accessible `Label` and
+Label trap: `components.Button(c, label, variant)` sets the accessible `Label` *and* appends a `Text(label)` child, so a button built with a label plus the same text child reports the word twice and `TestFooterActionsAppearOnce` fails. Icon buttons are built as `components.Button(c, "", variant)` + `Children(Row{Icon, Text(label)})`; a label only when it says more than the visible text ("Appearance: Dark").
+
+## Never `ButtonPrimary`: the brand keeps the accent out of structure — it marks the
+Never `ButtonPrimary`: the brand keeps the accent out of structure — it marks the chosen row, the focus ring and the selected sidebar icon only. Every action button, including the confirm in a dialog, is `ButtonOutline`; a destructive one takes `Danger` text plus pressed/hover tints.
+
+## Disabled controls need their own dimming: Onevra styles a control when it is
+Disabled controls need their own dimming: Onevra styles a control when it is constructed, which is before the app knows it is disabled, so `.Disabled()` afterwards leaves it looking live. The app adds `.Opacity(0.45)` (`disabledOpacity`) as well.
+
+## Narrow-window rule: below `narrowWidth = 880` the sidebar is put away for want of
+Narrow-window rule: below `narrowWidth = 880` the sidebar is put away for want of room — force-closed every frame while narrow, given back once when the width crosses back over. No window minimum was raised, so the 620x420 tests still hold.
+
+## Screenshots are test output: `go test -run TestRender ./internal/app/` rewrites
+Screenshots are test output: `go test -run TestRender ./internal/app/` rewrites `testdata/*.png` (`live.png` is the default 1120x720 frame). `docs/screenshot.png` and `-light/-dark.png` are copies of `testdata/live.png` and `testdata/appearance-*.png`; `landing/assets/` copies `docs/` plus `testdata/empty-search.png` and `testdata/window-disabled.png`.
+
+## Test-only symbols break the real build: a `const` declared in `viewtest_test.go`
+Test-only symbols break the real build: a `const` declared in `viewtest_test.go` compiles under `go test` but not under `go tool mygo build`, and `go test ./...` stays green while the app cannot be built. The gate is `go tool mygo build` (or `go tool mygo vet .`, which type-checks the non-test package too).
+
+## Binary size after Onevra: `go tool mygo build` writes a 14.3 MB `ports.exe` (13.6 MB
+Binary size after Onevra: `go tool mygo build` writes a 14.3 MB `ports.exe` (13.6 MB before the migration), plus a 4.6 MB installer. `-race` is unavailable on this machine (no cgo).

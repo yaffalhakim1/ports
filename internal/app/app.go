@@ -5,6 +5,9 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/oneo-me/onevra/source/components"
+	"github.com/oneo-me/onevra/source/components/command"
+	"github.com/oneo-me/onevra/source/shells/sidebar"
 
 	"ports/internal/host"
 	"ports/internal/port"
@@ -26,7 +29,11 @@ type App struct {
 	shown []port.Port
 	query string
 	order ui.SortOrder
-	only  bool // show only the ports another machine can reach
+
+	// mode is which view the sidebar has chosen, and folder narrows it to
+	// one working directory; "" means every folder.
+	mode   Mode
+	folder string
 
 	status string
 
@@ -35,16 +42,20 @@ type App struct {
 	lastErr  error
 	lastScan time.Time
 
-	// chosen is the selected row, as an index into shown.
-	chosen int
-	list   ui.ListState
-
-	// appliedOrder is the sort order the shown list was last sorted by, so a
-	// header click, which the table records in order, is applied once.
-	appliedOrder ui.SortOrder
+	// chosen is the selected row, as an index into shown. table is the
+	// table's own state: the keyboard cursor, the column layout, the sort
+	// order and the scrolling. chosen and table.List.Selected point at the
+	// same number, one for the app to read and one for the table to move.
+	chosen     int
+	tableState components.TableVirtualizedState
 
 	// searchBox is the filter field, so the keyboard can reach it.
 	searchBox ui.Handle
+
+	// toast is an outcome waiting to be shown. A toast can only be added
+	// while a frame is being built, and the actions that raise one run off
+	// the main thread, so they queue it here and the frame emits it.
+	toast *ui.Toast
 
 	// appearance is which look to show, and quitting is set when the app
 	// is really going away rather than closing to the tray.
@@ -52,12 +63,43 @@ type App struct {
 	quitting   bool
 	tray       *mygo.Tray
 
+	// shell is the window's frame, which owns the sidebar; the app asks it
+	// to collapse when the window is too narrow to hold both.
+	shell *sidebar.Shell
+	// narrow records whether the sidebar was collapsed for want of room,
+	// so widening the window gives it back rather than fighting the user's
+	// own toggle.
+	narrow bool
+
+	// palette is the command palette's query and active row, and open is
+	// whether it is showing.
+	paletteState command.State
+	paletteOpen  bool
+
 	// pending names an action waiting for the user to confirm it, since
 	// ending a process cannot be undone.
 	pending *pendingAction
 
 	// now is the frame's time, read once per frame.
 	now time.Time
+
+	// frame is the theme the frame's appearance resolves to. beginFrame
+	// installs it in the context and keeps it here, because the table's
+	// cells are built in a later pass than the rest of the window and the
+	// context no longer carries the app's theme by then: a cell that asked
+	// the context there would paint the library's default palette, which is
+	// light, into a dark window.
+	frame *ui.Theme
+}
+
+// themeOf is the frame's theme, for the code that cannot read it from the
+// context: the table's cells. Everything else asks the context, which is
+// where beginFrame put the same value.
+func (a *App) themeOf() *ui.Theme {
+	if a.frame == nil {
+		a.frame = theme(false)
+	}
+	return a.frame
 }
 
 // New returns an app with the remembered appearance, ready to be shown.
@@ -68,9 +110,28 @@ func New(appearance Appearance) *App {
 // SetWindow records the window the app draws into.
 func (a *App) SetWindow(w *mygo.Window) { a.win = w }
 
-// View builds the window's interface from the app's state. It is the
-// window's content function, called on the main thread for every frame.
-func (a *App) View(c *ui.Context) { a.view(c) }
+// SetShell records the window's frame, which owns the sidebar. The app asks
+// it to collapse when the window is too narrow for both it and the list.
+func (a *App) SetShell(s *sidebar.Shell) { a.shell = s }
+
+// setView switches the sidebar's view, keeping the chosen port on the same
+// listener when the new view still holds it, for the same reason a scan
+// does: switching to "Local only" should not lose the port being read.
+func (a *App) setView(m Mode, folder string) {
+	was, had := a.selected()
+	a.mode, a.folder = m, folder
+	a.refresh()
+	if !had {
+		return
+	}
+	for i, p := range a.shown {
+		if p.Key() == was.Key() {
+			a.chosen = i
+			return
+		}
+	}
+	a.chosen = -1
+}
 
 // pendingAction is a stop or restart waiting for confirmation.
 type pendingAction struct {
@@ -88,8 +149,10 @@ func (a *App) selected() (port.Port, bool) {
 }
 
 // Start scans at once and then on every tick, so the window is never
-// showing a stale list for long.
+// showing a stale list for long. It runs on the main thread, which is where
+// the theme source has to be set.
 func (a *App) Start() {
+	mygo.Theme.SetSource(a.appearance.Source())
 	go func() {
 		a.scanNow()
 		ticker := time.NewTicker(refreshEvery)
@@ -140,17 +203,14 @@ func (a *App) apply(ports []port.Port) {
 	a.chosen = -1
 }
 
-// refresh filters and sorts the last scan into what the window shows.
+// refresh filters and sorts the last scan into what the window shows. The
+// order is the sidebar's view, then its folder, then the search: from the
+// broadest narrowing to the narrowest, so a port hidden by the mode is
+// never reported as a missing search hit.
 func (a *App) refresh() {
-	ports := a.ports
-	if a.only {
-		exposed := make([]port.Port, 0, len(ports))
-		for _, p := range ports {
-			if p.Exposed() {
-				exposed = append(exposed, p)
-			}
-		}
-		ports = exposed
+	ports := keepMode(a.ports, a.mode)
+	if a.folder != "" {
+		ports = keepFolder(ports, a.folder)
 	}
 	a.shown = filter(ports, a.query)
 	sortPorts(a.shown, a.order)
@@ -160,7 +220,9 @@ func (a *App) refresh() {
 }
 
 // appearanceOf resolves the appearance to show: the user's choice, or what
-// the desktop asks for when the choice is to follow it.
+// the desktop asks for when the choice is to follow it. The frame's theme is
+// MyGo's own until the shell installs the brand's, so reading its dark flag
+// here reads the desktop's setting rather than this app's answer.
 func (a *App) appearanceOf(c *ui.Context) bool {
 	switch a.appearance {
 	case AppearanceLight:
@@ -170,11 +232,4 @@ func (a *App) appearanceOf(c *ui.Context) bool {
 	default:
 		return c.Theme().Dark
 	}
-}
-
-// applyTheme installs the theme for the current appearance. It is called
-// at the top of the view, so a change of appearance takes effect on the
-// next frame.
-func (a *App) applyTheme(c *ui.Context) {
-	c.SetTheme(theme(a.appearanceOf(c)))
 }

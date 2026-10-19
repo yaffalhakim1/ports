@@ -5,109 +5,162 @@ import (
 	"strings"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/oneo-me/onevra/source/components"
+	"github.com/oneo-me/onevra/source/icons/lucide"
 
 	"ports/internal/port"
 )
 
-// buttonPadV and buttonPadH size an action so its hit area is 32 DIPs
-// tall, which clears the 24x24 floor of WCAG 2.5.8 with room for the
-// focus ring. The label's own box is only as tall as its text.
-const (
-	buttonPadV = 7
-	buttonPadH = 12
-)
+// footerGap is the space between the actions, and between the text and the
+// first of them: one step of the eight-pixel grid the window is laid out on.
+const footerGap = 8
 
 // footer is the action bar: what is chosen, and what can be done with it.
 //
-// The left side grows and shrinks, so its text truncates when the window
-// is narrow, while the actions keep their size and stay on screen. The
-// status message lives in the header for the same reason: it is the
-// longest text and would otherwise push the actions out of the window.
+// The left side grows and shrinks, so its text truncates when the window is
+// narrow, while the actions keep their size and stay on screen. The summary
+// of the list lives in the titlebar for the same reason: it is the longest
+// text and would otherwise push the actions out of the window.
 func (a *App) footer(c *ui.Context) {
 	t := c.Theme()
-	ui.Row(c).AlignItems(ui.Center).Gap(footerGap).Padding(pageMargin, 14).Children(func() {
-		p, ok := a.selected()
-		if !ok {
-			ui.Text(c, "Choose a port to open, stop or restart it").
-				FontSize(13).TextColor(t.TextMuted).SingleLine().Ellipsis("…").
-				Grow(1).Shrink(1).MinWidth(0)
-			return
-		}
-
-		// What just happened, or what is chosen, in the space the actions
-		// leave. An action's result belongs beside the action, and the
-		// header already carries how fresh the list is.
-		if a.status != "" {
-			ui.Text(c, a.status).FontSize(12).TextColor(t.TextMuted).
-				SingleLine().Ellipsis("…").Grow(1).Shrink(1).MinWidth(0)
-		} else {
-			ui.Row(c).Grow(1).Shrink(1).MinWidth(0).
-				AlignItems(ui.Center).Gap(8).Children(func() {
-				ui.Text(c, p.Name).FontSize(13).FontWeight(600).
-					SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
-				ui.Text(c, "·").FontSize(13).TextColor(t.TextMuted).Shrink(0)
-				ui.Text(c, p.URL()).FontSize(13).TextColor(t.TextMuted).
-					SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
-			})
-		}
-
-		a.actions(c, p)
+	ui.Column(c).Shrink(0).Children(func() {
+		ui.Box(c).FillWidth().Height(1).Background(t.Border)
+		ui.Row(c).AlignItems(ui.Center).Gap(footerGap).Padding(footerPadV, pageMargin).Children(func() {
+			p, ok := a.selected()
+			if !ok {
+				components.Text(c, "Choose a port to open, stop or restart it").
+					FontSize(t.FontSize - 1).TextColor(t.TextMuted).
+					SingleLine().Ellipsis("…").Grow(1).Shrink(1).MinWidth(0)
+				return
+			}
+			a.footerText(c, p)
+			a.actions(c, p)
+		})
 	})
+}
+
+// footerText is what just happened, or what is chosen, in the space the
+// actions leave. An action's result belongs beside the action, and the
+// titlebar already carries how fresh the list is.
+func (a *App) footerText(c *ui.Context, p port.Port) {
+	t := c.Theme()
+	if a.status != "" {
+		components.Text(c, a.status).FontSize(t.FontSize - 1).TextColor(t.TextMuted).
+			SingleLine().Ellipsis("…").Grow(1).Shrink(1).MinWidth(0)
+		return
+	}
+	ui.Row(c).Grow(1).Shrink(1).MinWidth(0).AlignItems(ui.Center).Gap(t.Space(2)).Children(func() {
+		components.Text(c, p.Name).FontSize(t.FontSize - 1).Bold().
+			SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
+		components.Text(c, "·").FontSize(t.FontSize - 1).TextColor(t.TextMuted).Shrink(0)
+		components.Text(c, p.URL()).FontSize(t.FontSize - 1).TextColor(t.TextMuted).
+			SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
+	})
+}
+
+// action is one thing the action bar can do with the chosen port: its icon,
+// its word, what its tooltip says, and whether it is the destructive one.
+type action struct {
+	icon     func() *ui.SVG
+	label    string
+	tip      string
+	onClick  func()
+	disabled bool
+	danger   bool
 }
 
 // actions are what a chosen port offers. They never shrink, so a narrow
 // window truncates the text beside them rather than hiding them. Stop and
-// restart are disabled for a process that cannot be ended, with the
+// restart are unavailable for a process that cannot be ended, with the
 // reason on the button's tooltip.
 func (a *App) actions(c *ui.Context, p port.Port) {
 	blocked := p.SystemPID()
 
-	iconButton(c, iconOpen, "Open", disabledReason("Open", p, false), func() { a.open(c, p) })
-	iconButton(c, iconCopy, "Copy", disabledReason("Copy", p, false), func() { a.copy(c, p) })
-
-	restart := iconButton(c, iconRestart, "Restart", disabledReason("Restart", p, blocked),
-		func() { a.ask("Restart", p) })
-	restart.Disabled(blocked)
-
-	stop := iconButton(c, iconStop, "Stop", disabledReason("Stop", p, blocked),
-		func() { a.ask("Stop", p) })
-	stop.Disabled(blocked)
-	// A destructive action is marked in its own colour and by its wording,
-	// so the meaning is never carried by the colour alone.
-	stop.TextColor(c.Theme().Danger)
-	if stop.Hovered() && !blocked {
-		stop.Background(c.Theme().Danger.Alpha(0.12))
-	}
+	a.actionButton(c, action{
+		icon:    lucide.ExternalLink,
+		label:   "Open",
+		tip:     disabledReason("Open", p, false),
+		onClick: func() { a.open(c, p) },
+	})
+	a.actionButton(c, action{
+		icon:    lucide.Copy,
+		label:   "Copy",
+		tip:     disabledReason("Copy", p, false),
+		onClick: func() { a.copy(c, p) },
+	})
+	a.actionButton(c, action{
+		icon:     lucide.RotateCcw,
+		label:    "Restart",
+		tip:      disabledReason("Restart", p, blocked),
+		disabled: blocked,
+		onClick:  func() { a.ask("Restart", p) },
+	})
+	a.actionButton(c, action{
+		icon:     lucide.Square,
+		label:    "Stop",
+		tip:      disabledReason("Stop", p, blocked),
+		disabled: blocked,
+		danger:   true,
+		onClick:  func() { a.ask("Stop", p) },
+	})
 }
 
-// iconButton is one action in the footer: an icon and a label in a button
-// that takes the keyboard focus.
+// actionButton builds one action from Onevra's outline variant, so its hit
+// area, its radius, its hover and pressed faces all come from the theme
+// rather than from numbers written here.
 //
-// Every action carries a border and a surface, so it reads as a control
-// rather than as the static text beside it; only the primary action gets
-// a fill. The padding is what gives the button a hit area, so it is set
-// here rather than left to the label's own box.
-func iconButton(c *ui.Context, icon *ui.SVG, label, tip string, onClick func()) ui.Element {
+// The label is left to the button's own text rather than being set as an
+// accessible name as well: MyGo reads a control's name from its text, so
+// setting both would make a screen reader say the word twice.
+func (a *App) actionButton(c *ui.Context, act action) {
 	t := c.Theme()
-	b := ui.ButtonBase(c).Padding(buttonPadV, buttonPadH).Radius(8).
-		Focusable().Shrink(0).
-		Background(t.Surface).Border(1, controlBorder(t.Dark)).
-		Tooltip(tip).OnClick(onClick).
-		// The icon inherits this, so a button that overrides its colour
-		// (the destructive one) recolours its icon with its label.
-		TextColor(t.TextMuted)
-	// A row with a gap, so the icon does not touch its label.
+	b := components.Button(c, "", components.ButtonOutline).
+		Shrink(0).OnClick(act.onClick)
 	b.Children(func() {
-		ui.Row(c).AlignItems(ui.Center).Gap(iconLabelGap).Children(func() {
-			ui.Icon(c, icon).Size(14, 14)
-			ui.Text(c, label).FontSize(13).Shrink(0)
+		ui.Row(c).AlignItems(ui.Center).Gap(t.Space(1.5)).Children(func() {
+			// The icon inherits the button's colour, so recolouring the
+			// button below recolours its icon with its label.
+			components.Icon(c, act.icon).Size(14, 14)
+			components.Text(c, act.label).FontSize(t.FontSize - 1).Shrink(0)
 		})
 	})
-	if b.Hovered() {
-		b.Background(t.SurfaceHover)
+	components.Tooltip(c, b, act.tip)
+
+	if act.disabled {
+		// Onevra dims a disabled control while styling it, which is before
+		// this action knows it is disabled. The dimming is applied here
+		// instead, at the same weight.
+		if act.danger {
+			b.TextColor(t.Danger)
+		}
+		b.Disabled(true).Opacity(disabledOpacity)
+		return
 	}
-	return b
+	if act.danger {
+		dangerFace(c, b)
+		return
+	}
+	b.TextColor(t.TextMuted)
 }
+
+// dangerFace marks a destructive control in the danger colour, with the
+// pressed and hover tints of its own, so pressing it looks like pressing it
+// rather than like touching a neutral button. The wording carries the same
+// meaning, so the colour is never the only signal.
+func dangerFace(c *ui.Context, b ui.Element) {
+	t := c.Theme()
+	b.TextColor(t.Danger)
+	switch {
+	case b.Pressed():
+		b.Background(t.Danger.Alpha(0.20))
+	case b.Hovered():
+		b.Background(t.Danger.Alpha(0.12))
+	}
+}
+
+// disabledOpacity is how far a control fades when it cannot be used, which
+// is the weight Onevra's own controls fade to.
+const disabledOpacity = 0.45
 
 // disabledReason is the tooltip of an action: why it is unavailable, or
 // exactly what it will do.
@@ -123,12 +176,3 @@ func disabledReason(verb string, p port.Port, blocked bool) string {
 	}
 	return verb + " " + p.Name + " (PID " + fmt.Sprint(p.PID) + ")"
 }
-
-// Spacing constants for the footer. pageMargin is the window's horizontal
-// margin, which the header, the table and the footer all share, so the
-// right edge of the last action lines up with the table's left edge.
-const (
-	pageMargin   = 20
-	footerGap    = 12
-	iconLabelGap = 8
-)

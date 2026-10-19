@@ -12,26 +12,28 @@
 
 A native Windows app that lists every listening TCP port with the process that owns it, the PID, and **the folder it was started in**. That last one is the point: `netstat` tells you a port is taken, this tells you *which project* took it.
 
-It is built with [MyGo](https://github.com/egoist/mygo) - pure Go, no cgo, no webview, drawn on the GPU. One 11 MB binary that opens instantly.
+It is built with [MyGo](https://github.com/egoist/mygo) and [Onevra](https://github.com/oneo-me/onevra) - pure Go, no cgo, no webview, drawn on the GPU. One 14 MB binary that opens instantly.
 
 ```
- 8644   python.exe     hermes          ::          21740
- 34123  waku-daemon    waku            0.0.0.0     17152
- 52481  opencode.exe   waku            127.0.0.1   26464
- 51467  opencode.exe   portfolio       127.0.0.1   32920
- 63502  ABDownload...  system32        127.0.0.1   2392
+  Port           Process       Address      PID     Folder
+  445  exposed   System        0.0.0.0      4       unknown
+  3000 local     node.exe      127.0.0.1    4242    web
+  5432 exposed   postgres.exe  0.0.0.0      5150    api
+  8644 local     python.exe    ::1          21740   hermes
 ```
 
 ## What it does
 
 - **Lists every listening TCP port**, IPv4 and IPv6, with its process and PID.
 - **Shows the working directory** of each process, so two servers of the same program are told apart by the project they serve.
+- **Marks each port exposed or local**, so "can another machine reach this?" is answered on the row rather than inferred from the address.
+- **A sidebar** that narrows the list three ways - every port, only the exposed ones, only the local ones - and lists one entry per project folder, with its count.
 - **Search** across port, process, address and folder.
 - **Sort** by any column, and resize or reorder the columns.
-- **Exposed only** filters to the ports another machine could reach, which is the question "did I just expose a dev server?".
 - **Open** a port in the browser, or **copy** its address.
 - **Stop** or **restart** a process, after a confirmation that names it. A restart reuses the original command line and working directory.
 - **Rescans every two seconds**, off the UI thread, so the list stays current without a refresh key.
+- **Keyboard**: `F` for the search, `R` to rescan, `Ctrl+K` for a command palette over the ports and the actions.
 - **Closes to the tray**, and keeps scanning there.
 - **Light, dark, or the desktop's own appearance**, from a menu on the button.
 
@@ -54,8 +56,13 @@ Needs [Go](https://go.dev/dl/) 1.27 or later. No other toolchain, no Node, no we
 ```sh
 go tool mygo build      # ports.exe and the installer, in build/windows-amd64
 go tool mygo dev        # run with live reload
+go tool mygo vet .      # the lint the project is kept to
 go test ./...           # the tests
+go test -run TestRender ./internal/app/   # rewrite testdata/*.png
 ```
+
+The screenshots in this file are test output: `TestRender` writes `testdata/`, and
+`docs/` and `landing/assets/` hold copies of it.
 
 ## Landing page
 
@@ -117,12 +124,25 @@ internal/host/                 reading and controlling the machine
 internal/app/                  the window
   app.go                       state, and the background scan loop
   list.go                      filtering and sorting
+  mode.go                      which view the sidebar chose, and the folders it lists
   actions.go                   what the buttons do
-  view_*.go                    the window: header, table, footer
-  theme.go palette.go color.go icons.go appearance.go   the look
+  view_shell.go                the window's frame, and what it hands the shell
+  view_sidebar.go              the sidebar: the three views, and an entry per folder
+  view_titlebar.go             the title strip, the frame's clock, and the keys
+  view_content.go              the frame's root: the theme, the keys, the toolbar
+  view_table.go                the list, and its cells
+  view_footer.go               the chosen port, the actions, and the status line
+  view_confirm.go              the dialog every destructive action asks through
+  view_command.go              the command palette
+  theme.go palette.go color.go appearance.go   the look
   tray.go trayicon.go          the notification area icon
   settings.go                  the remembered appearance
 ```
+
+The window is Onevra's sidebar shell; the app fills its three regions and draws
+nothing else. Icons come from Onevra's Lucide set, and the theme starts from the
+library's light and dark and overrides only the colours, so the brand is the only
+thing that differs from the defaults.
 
 ## Licence
 

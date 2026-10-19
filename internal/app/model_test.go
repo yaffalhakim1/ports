@@ -96,7 +96,7 @@ func TestChoiceClearedWhenPortGoes(t *testing.T) {
 
 func TestExposedOnlyKeepsExposedPorts(t *testing.T) {
 	a := newTestApp()
-	a.only = true
+	a.mode = ModeExposed
 	a.refresh()
 	for _, p := range a.shown {
 		if p.Loopback() {
@@ -106,6 +106,65 @@ func TestExposedOnlyKeepsExposedPorts(t *testing.T) {
 	// 0.0.0.0:5432 and 0.0.0.0:445 are reachable; 127.0.0.1 and ::1 are not.
 	if len(a.shown) != 2 {
 		t.Errorf("exposed-only showed %v, want 2 rows", portsOf(a.shown))
+	}
+}
+
+// TestLocalOnlyKeepsLoopbackPorts is the other half of the same filter, and
+// the view the sidebar made reachable: the dev servers a browser on this
+// machine can use.
+
+func TestLocalOnlyKeepsLoopbackPorts(t *testing.T) {
+	a := newTestApp()
+	a.mode = ModeLocal
+	a.refresh()
+	for _, p := range a.shown {
+		if !p.Loopback() {
+			t.Errorf("local-only kept the reachable port %d", p.Port)
+		}
+	}
+	// 127.0.0.1:3000 and ::1:8644 answer on this machine alone.
+	if len(a.shown) != 2 {
+		t.Errorf("local-only showed %v, want 2 rows", portsOf(a.shown))
+	}
+}
+
+// TestFolderViewKeepsItsFolder checks a folder view shows that project's
+// ports and nothing else, which is what makes the sidebar's Folders section
+// worth having.
+
+func TestFolderViewKeepsItsFolder(t *testing.T) {
+	a := newTestApp()
+	a.setView(ModeAll, `C:\work\web`)
+	if len(a.shown) != 1 || a.shown[0].Port != 3000 {
+		t.Fatalf("the web folder showed %v, want port 3000 alone", portsOf(a.shown))
+	}
+	// The filter is the whole path, not its last part: another project could
+	// be called "web" too.
+	a.setView(ModeAll, `C:\work\api`)
+	if len(a.shown) != 1 || a.shown[0].Port != 5432 {
+		t.Errorf("the api folder showed %v, want port 5432 alone", portsOf(a.shown))
+	}
+}
+
+// TestFoldersAreCountedAndOrdered checks the sidebar's Folders section: one
+// row per working directory, busiest first, and no row for a port whose
+// directory could not be read.
+
+func TestFoldersAreCountedAndOrdered(t *testing.T) {
+	got := folders(fakePorts())
+	if len(got) != 3 {
+		t.Fatalf("counted %d folders, want 3: %v", len(got), got)
+	}
+	for _, f := range got {
+		if f.Ports != 1 {
+			t.Errorf("folder %q counted %d ports, want 1", f.Name, f.Ports)
+		}
+		if f.Dir == "" {
+			t.Error("a folder row has no path to filter by")
+		}
+	}
+	if names := []string{got[0].Name, got[1].Name, got[2].Name}; names[0] > names[1] || names[1] > names[2] {
+		t.Errorf("equal folders are not ordered by name: %v", names)
 	}
 }
 
